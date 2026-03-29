@@ -1,0 +1,86 @@
+@import "tailwindcss";
+
+:root {
+  --ematricula-page-bg: #f9f9ff;
+  --ematricula-card-shell: #eff3ff;
+  --ematricula-surface: #ffffff;
+  --ematricula-surface-glass: rgba(255, 255, 255, 0.1);
+  --ematricula-brand-panel-solid: #3c5bb9;
+  --ematricula-brand-gradient-start: #1e429f;
+  --ematricula-brand-gradient-mid: #3c5bb9;
+  --ematricula-brand-gradient-end: #4b5c92;
+  --ematricula-cta-gradient-from: #1e429f;
+  --ematricula-cta-gradient-to: #3c5bb9;
+  --ematricula-text-primary: #121c2a;
+  --ematricula-text-secondary: #434654;
+  --ematricula-text-muted: #737686;
+  --ematricula-text-placeholder: rgba(115, 118, 134, 0.5);
+  --ematricula-text-on-brand: #ffffff;
+  --ematricula-text-on-brand-soft: #d4dcff;
+  --ematricula-link: #1e429f;
+  --ematricula-link-bright: #1d4ed8;
+  --ematricula-nav-title: #1e3a8a;
+  --ematricula-border-input: rgba(195, 197, 215, 0.3);
+  --ematricula-shadow-card: 0 25px 50px -12px rgba(30, 58, 138, 0.1);
+  --ematricula-shadow-cta: 0 4px 6px -4px rgba(30, 66, 159, 0.2),
+    0 10px 15px -3px rgba(30, 66, 159, 0.2);
+  --ematricula-shadow-nav: 0 8px 10px -6px rgba(30, 58, 138, 0.05),
+    0 20px 25px -5px rgba(30, 58, 138, 0.05);
+  --ematricula-shadow-input: 0 0 0 1px rgba(195, 197, 215, 0.3);
+  --ematricula-register-pill-bg: #dbe1ff;
+  --ematricula-register-pill-text: #01174b;
+  --ematricula-signup-pill-bg: #dee9fd;
+  --ematricula-footer-bg: #f8fafc;
+  --ematricula-footer-title: #0f172a;
+  --ematricula-footer-muted: #64748b;
+  --ematricula-input-muted-bg: #eff3ff;
+  --ematricula-input-placeholder-register: #c3c5d7;
+  --ematricula-nav-surface: rgba(255, 255, 255, 0.7);
+  --ematricula-radius-card: 1.5rem;
+  --ematricula-radius-control: 0.75rem;
+  --ematricula-radius-pill: 624.9375rem;
+}
+
+@theme inline {
+  --color-ematricula-page-bg: var(--ematricula-page-bg);
+  --color-ematricula-card-shell: var(--ematricula-card-shell);
+  --color-ematricula-surface: var(--ematricula-surface);
+  --color-ematricula-surface-glass: var(--ematricula-surface-glass);
+  --color-ematricula-brand-panel-solid: var(--ematricula-brand-panel-solid);
+  --color-ematricula-text-primary: var(--ematricula-text-primary);
+  --color-ematricula-text-secondary: var(--ematricula-text-secondary);
+  --color-ematricula-text-muted: var(--ematricula-text-muted);
+  --color-ematricula-text-placeholder: var(--ematricula-text-placeholder);
+  --color-ematricula-text-on-brand: var(--ematricula-text-on-brand);
+  --color-ematricula-text-on-brand-soft: var(--ematricula-text-on-brand-soft);
+  --color-ematricula-link: var(--ematricula-link);
+  --color-ematricula-link-bright: var(--ematricula-link-bright);
+  --color-ematricula-nav-title: var(--ematricula-nav-title);
+  --color-ematricula-border-input: var(--ematricula-border-input);
+  --color-ematricula-register-pill-bg: var(--ematricula-register-pill-bg);
+  --color-ematricula-register-pill-text: var(--ematricula-register-pill-text);
+  --color-ematricula-signup-pill-bg: var(--ematricula-signup-pill-bg);
+  --color-ematricula-footer-bg: var(--ematricula-footer-bg);
+  --color-ematricula-footer-title: var(--ematricula-footer-title);
+  --color-ematricula-footer-muted: var(--ematricula-footer-muted);
+  --color-ematricula-input-muted-bg: var(--ematricula-input-muted-bg);
+  --color-ematricula-input-placeholder-register: var(
+    --ematricula-input-placeholder-register
+  );
+  --color-ematricula-nav-surface: var(--ematricula-nav-surface);
+  --radius-ematricula-card: var(--ematricula-radius-card);
+  --radius-ematricula-control: var(--ematricula-radius-control);
+  --radius-ematricula-pill: var(--ematricula-radius-pill);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-manrope);
+  --shadow-ematricula-card: var(--ematricula-shadow-card);
+  --shadow-ematricula-cta: var(--ematricula-shadow-cta);
+  --shadow-ematricula-nav: var(--ematricula-shadow-nav);
+  --shadow-ematricula-input: var(--ematricula-shadow-input);
+}
+
+body {
+  background: var(--ematricula-page-bg);
+  color: var(--ematricula-text-primary);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
