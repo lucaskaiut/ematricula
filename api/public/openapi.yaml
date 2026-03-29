@@ -1,0 +1,397 @@
+openapi: 3.0.3
+info:
+  title: API eMatrícula — Utilizadores
+  description: |
+    Rotas HTTP expostas em `routes/api.php` (prefixo `/api`).
+
+    Rotas autenticadas usam **Laravel Sanctum** (`Authorization: Bearer <token>`) e o middleware
+    `InitializeCompany`: o utilizador autenticado deve estar associado a uma empresa; caso contrário
+    a API pode responder com **404** (“Company not found”).
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Docker Compose (nginx, porta HTTP por defeito)
+  - url: http://localhost
+    description: Servidor local (ajuste a porta se necessário)
+
+tags:
+  - name: Users
+    description: Gestão e autenticação de utilizadores
+
+paths:
+  /api/users:
+    get:
+      tags: [Users]
+      summary: Listar utilizadores (paginado)
+      description: |
+        Aceita filtros e ordenação via query string (formato típico do Laravel), por exemplo:
+        `filters[name]=João`, `orderBy[id]=desc`, `per_page=15`.
+      operationId: usersIndex
+      security:
+        - sanctum: []
+      parameters:
+        - name: filters
+          in: query
+          description: Critérios de filtro (chave/valor por campo).
+          schema:
+            type: object
+            additionalProperties: true
+          style: form
+          explode: true
+        - name: orderBy
+          in: query
+          description: Ordenação por campo (`asc` ou `desc`).
+          schema:
+            type: object
+            additionalProperties:
+              type: string
+              enum: [asc, desc]
+          style: form
+          explode: true
+        - name: per_page
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            default: 15
+      responses:
+        "200":
+          description: Coleção paginada (`UserResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPaginator"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    post:
+      tags: [Users]
+      summary: Criar utilizador
+      operationId: usersStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWrite"
+      responses:
+        "201":
+          description: Utilizador criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+
+  /api/users/register:
+    post:
+      tags: [Users]
+      summary: Registar empresa e primeiro utilizador
+      operationId: usersRegister
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserRegisterBody"
+      responses:
+        "201":
+          description: Utilizador criado (sem token no recurso, salvo lógica adicional)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          description: Erro de servidor (ex. credenciais ou falha não mapeada)
+
+  /api/users/login:
+    post:
+      tags: [Users]
+      summary: Iniciar sessão (token Sanctum)
+      operationId: usersLogin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLoginBody"
+      responses:
+        "201":
+          description: Autenticação bem-sucedida; o campo `data.token` contém o bearer token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "500":
+          description: Credenciais inválidas ou erro não tratado como 401
+
+  /api/users/{id}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [Users]
+      summary: Obter utilizador por ID
+      operationId: usersShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Recurso encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+    put:
+      tags: [Users]
+      summary: Atualizar utilizador
+      description: |
+        `password` é opcional na atualização; quando omitido ou nulo, a palavra-passe não é alterada
+        pelas regras de validação atuais.
+      operationId: usersUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWriteUpdate"
+      responses:
+        "200":
+          description: Utilizador atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [Users]
+      summary: Eliminar utilizador
+      operationId: usersDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+
+components:
+  securitySchemes:
+    sanctum:
+      type: http
+      scheme: bearer
+      bearerFormat: Sanctum personal access token
+      description: Token devolvido em `POST /api/users/login` (campo `data.token` no JSON).
+
+  parameters:
+    UserId:
+      name: id
+      in: path
+      required: true
+      description: Identificador do utilizador (chave primária).
+      schema:
+        type: integer
+        minimum: 1
+
+  responses:
+    Unauthorized:
+      description: Não autenticado (Sanctum)
+    NotFound:
+      description: Recurso não encontrado ou empresa não resolvida pelo middleware
+    ValidationError:
+      description: Erro de validação Laravel
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/LaravelValidationError"
+
+  schemas:
+    UserAttributes:
+      type: object
+      required: [id, name, email, created_at, updated_at]
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        token:
+          type: string
+          nullable: true
+          description: Presente após login (Sanctum plain text token).
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    UserWrapped:
+      description: |
+        Resposta de `JsonResource` com `$wrap = 'data'` (valor por defeito no Laravel): o objeto do
+        `UserResource::toArray()` fica dentro da chave `data`.
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/UserAttributes"
+
+    UserPaginator:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/UserAttributes"
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              format: uri
+              nullable: true
+            last:
+              type: string
+              format: uri
+              nullable: true
+            prev:
+              type: string
+              format: uri
+              nullable: true
+            next:
+              type: string
+              format: uri
+              nullable: true
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            from:
+              type: integer
+              nullable: true
+            last_page:
+              type: integer
+            path:
+              type: string
+            per_page:
+              type: integer
+            to:
+              type: integer
+              nullable: true
+            total:
+              type: integer
+
+    UserWrite:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+
+    UserWriteUpdate:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          nullable: true
+          minLength: 8
+          description: Opcional; se omitido, mantém-se a palavra-passe atual.
+
+    UserRegisterBody:
+      type: object
+      required: [company, user]
+      properties:
+        company:
+          type: object
+          required: [name, email, phone]
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            email:
+              type: string
+              format: email
+            phone:
+              type: string
+              maxLength: 255
+        user:
+          type: object
+          required: [name, email, password]
+          properties:
+            name:
+              type: string
+              maxLength: 255
+            email:
+              type: string
+              format: email
+            password:
+              type: string
+              minLength: 8
+
+    UserLoginBody:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+
+    LaravelValidationError:
+      type: object
+      description: Formato habitual de validação do Laravel.
+      properties:
+        message:
+          type: string
+        errors:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: string
