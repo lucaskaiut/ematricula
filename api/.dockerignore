@@ -1,0 +1,12 @@
+/node_modules
+/vendor
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+/storage/*.key
+/storage/logs/*
+!/storage/logs/.gitignore
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
