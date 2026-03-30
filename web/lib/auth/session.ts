@@ -5,6 +5,7 @@ import { createAuthService } from "@/services/auth-service";
 import { ApiError } from "@/services/api-client";
 import { createServerApiClient } from "@/lib/auth/server-api";
 import type { PublicUser } from "@/types/api";
+import { cache } from "react";
 
 const WEEK_SEC = 60 * 60 * 24 * 7;
 
@@ -53,6 +54,10 @@ export async function getServerSession(): Promise<{
     return { user: null, token };
   }
 }
+
+export const getUser = cache(async () => {
+  return getServerSession();
+});
 
 export async function setAuthCookies(user: PublicUser, token: string) {
   const jar = await cookies();
