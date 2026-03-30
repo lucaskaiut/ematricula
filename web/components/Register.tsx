@@ -4,8 +4,13 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import type { RegisterRequestBody } from "@/types/api";
+import { RegisterRequest, RegisterResponse } from "@/actions/auth";
 
-export function Register() {
+export function Register({
+  onSubmit,
+}: {
+  onSubmit: (data: RegisterRequest) => Promise<RegisterResponse>;
+}) {
   const [data, setData] = useState<RegisterRequestBody>({
     company: {
       name: "",
@@ -20,6 +25,22 @@ export function Register() {
   });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  async function handleSubmit() {
+    setIsLoading(true);
+
+    const response = await onSubmit(data);
+
+    if (response.success) {
+      toast.success("Usuário cadastrado com sucesso");
+      router.push("/sign-in");
+      return;
+    }
+
+    toast.error("Erro ao cadastrar usuário");
+
+    setIsLoading(false);
+  }
 
   return (
     <main className="flex min-h-dvh w-full justify-center bg-ematricula-page-bg px-4 pb-8 pt-16 sm:px-6 sm:pb-12 sm:pt-24 md:pb-[54px] md:pt-[102px]">
@@ -42,6 +63,7 @@ export function Register() {
             className="pb-4"
             onSubmit={(e) => {
               e.preventDefault();
+              handleSubmit();
             }}
           >
             <div className="flex flex-col gap-6 sm:gap-8">
@@ -238,7 +260,19 @@ export function Register() {
           </form>
         </div>
       </section>
-      <ToastContainer />
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </main>
   );
 }

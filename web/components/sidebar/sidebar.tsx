@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { X } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { SIDEBAR_ITEMS } from "@/components/sidebar/menu-items";
 import { useSidebar } from "@/components/sidebar/sidebar-provider";
+import { useAuth } from "@/contexts/AuthContext";
 
 function isActivePath(
   pathname: string,
@@ -19,6 +20,7 @@ function isActivePath(
 }
 
 export function Sidebar() {
+  const { user, logout } = useAuth();
   const pathname = usePathname();
   const { isOpen, close } = useSidebar();
 
@@ -79,7 +81,7 @@ export function Sidebar() {
               eMatrícula
             </div>
             <div className="truncate text-xs font-medium text-ematricula-text-muted">
-              Área privada
+              {user?.name}
             </div>
           </div>
           <button
@@ -95,15 +97,16 @@ export function Sidebar() {
       </aside>
 
       <aside className="hidden h-dvh w-full flex-col border-r border-ematricula-border-input bg-ematricula-surface lg:flex">
-        <div className="flex h-14 items-center gap-3 px-4">
+        <div className="flex h-14 items-center justify-between gap-3 px-4">
           <div className="min-w-0">
             <div className="truncate font-display text-sm font-extrabold text-ematricula-nav-title">
               eMatrícula
             </div>
             <div className="truncate text-xs font-medium text-ematricula-text-muted">
-              Área privada
+              {user?.name}
             </div>
           </div>
+          <LogOut className="text-ematricula-text-muted cursor-pointer" onClick={logout}/>
         </div>
         {nav}
       </aside>

@@ -1,17 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { redirect } from "next/navigation";
+import { LoginRequest, LoginResponse } from "@/actions/auth";
+import { Bounce, toast, ToastContainer } from "react-toastify";
+import { cn } from "@/lib/cn";
 
-export function Auth() {
+export function Auth({
+  onSubmit,
+}: {
+  onSubmit: (data: LoginRequest) => Promise<LoginResponse>;
+}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const router = useRouter();
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    
+
+    const response = await onSubmit({ email, password });
+
+    if (response.success) {
+      toast.success("Login realizado com sucesso");
+      redirect("/");
+    }
+
+    toast.error(response.error);
+
     setIsLoading(false);
   };
 
@@ -41,8 +56,12 @@ export function Auth() {
                 type="email"
                 placeholder="nome@instituicao.edu"
                 value={email}
+                disabled={isLoading}
                 onChange={(e) => setEmail(e.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                className={cn(
+                  "min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]",
+                  isLoading && "opacity-50",
+                )}
                 autoComplete="email"
               />
             </div>
@@ -54,8 +73,12 @@ export function Auth() {
                 </label>
                 <button
                   type="button"
-                  className="shrink-0 text-left text-[12px] font-bold leading-4 text-ematricula-link sm:text-right"
-                  aria-disabled="true"
+                  className={cn(
+                    "shrink-0 text-left text-[12px] font-bold leading-4 text-ematricula-link sm:text-right",
+                    isLoading && "opacity-50",
+                  )}
+                  disabled={isLoading}
+                  aria-disabled={isLoading}
                 >
                   Esqueceu a senha?
                 </button>
@@ -65,8 +88,12 @@ export function Auth() {
                 type="password"
                 placeholder="••••••••"
                 value={password}
+                disabled={isLoading}
                 onChange={(e) => setPassword(e.target.value)}
-                className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                className={cn(
+                  "min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]",
+                  isLoading && "opacity-50",
+                )}
                 autoComplete="current-password"
               />
             </div>
@@ -83,7 +110,12 @@ export function Auth() {
                     "linear-gradient(90deg, var(--ematricula-cta-gradient-from) 0%, var(--ematricula-cta-gradient-to) 100%)",
                 }}
               >
-                <span className="text-base font-bold leading-7 text-ematricula-text-on-brand sm:text-[18px]">
+                <span
+                  className={cn(
+                    "text-base font-bold leading-7 text-ematricula-text-on-brand sm:text-[18px]",
+                    isLoading && "opacity-50",
+                  )}
+                >
                   {isLoading ? "Entrando..." : "Entrar"}
                 </span>
               </button>
@@ -98,9 +130,16 @@ export function Auth() {
               <button
                 type="button"
                 className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[24px] bg-ematricula-signup-pill-bg px-3 py-3.5 sm:min-h-0 sm:py-4"
-                onClick={() => router.push("/register")}
+                onClick={() => redirect("/register")}
+                disabled={isLoading}
+                aria-disabled={isLoading}
               >
-                <span className="text-center text-sm font-bold leading-6 text-ematricula-link sm:text-[16px]">
+                <span
+                  className={cn(
+                    "text-center text-sm font-bold leading-6 text-ematricula-link sm:text-[16px]",
+                    isLoading && "opacity-50",
+                  )}
+                >
                   Não tem uma conta? Cadastre-se
                 </span>
               </button>
@@ -108,6 +147,19 @@ export function Auth() {
           </div>
         </div>
       </section>
+      <ToastContainer
+        position="bottom-center"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="colored"
+        transition={Bounce}
+      />
     </main>
   );
 }

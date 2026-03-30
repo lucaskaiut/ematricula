@@ -27,15 +27,15 @@ export function SidebarProvider({
   children: React.ReactNode;
   defaultOpen?: boolean;
 }) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  useEffect(() => {
+  const [isOpen, setIsOpen] = useState(() => {
+    if (typeof window === "undefined") return defaultOpen;
     try {
       const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw === "0") setIsOpen(false);
-      if (raw === "1") setIsOpen(true);
+      if (raw === "0") return false;
+      if (raw === "1") return true;
     } catch {}
-  }, []);
+    return defaultOpen;
+  });
 
   useEffect(() => {
     try {
