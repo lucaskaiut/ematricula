@@ -5,6 +5,7 @@ use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function () {
+    Route::get('user/me', [UserController::class, 'me']);
     Route::group(['prefix' => 'users'], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::get('/{id}', [UserController::class, 'show']);

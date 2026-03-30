@@ -1,5 +1,5 @@
 import { setAuthCookies, clearAuthCookies } from "@/lib/auth/session";
-import { createServerAuthService } from "@/services/auth-service";
+import { createPublicAuthService } from "@/services/auth-service";
 import { ApiError } from "@/services/api-client";
 import type { LoginRequestBody, RegisterRequestBody, PublicUser } from "@/types/api";
 
@@ -24,7 +24,7 @@ function flattenFieldErrors(
 
 export async function loginAction(input: LoginRequestBody): Promise<LoginActionResult> {
   try {
-    const auth = createServerAuthService();
+    const auth = createPublicAuthService();
     const json = await auth.login({
       email: input.email.trim(),
       password: input.password,
@@ -56,7 +56,7 @@ export async function registerAction(
   input: RegisterRequestBody,
 ): Promise<RegisterActionResult> {
   try {
-    const auth = createServerAuthService();
+    const auth = createPublicAuthService();
     await auth.register({
       company: {
         name: input.company.name.trim(),

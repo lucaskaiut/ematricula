@@ -1,5 +1,9 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { AUTH_TOKEN_COOKIE, AUTH_USER_COOKIE } from "@/lib/auth/cookie-names";
+import { createAuthService } from "@/services/auth-service";
+import { ApiError } from "@/services/api-client";
+import { createServerApiClient } from "@/lib/auth/server-api";
 import type { PublicUser } from "@/types/api";
 
 const WEEK_SEC = 60 * 60 * 24 * 7;
@@ -20,23 +24,34 @@ export async function getServerSession(): Promise<{
 }> {
   const jar = await cookies();
   const token = jar.get(AUTH_TOKEN_COOKIE)?.value ?? null;
-  const raw = jar.get(AUTH_USER_COOKIE)?.value;
-  if (!raw) {
-    return { user: null, token };
+  if (!token) {
+    return { user: null, token: null };
   }
+  
   try {
-    const user = JSON.parse(raw) as PublicUser;
+    const client = await createServerApiClient();
+    const auth = createAuthService(client);
+    const json = await auth.me();
+    const u = json.data;
     if (
-      typeof user?.id === "number" &&
-      typeof user?.email === "string" &&
-      typeof user?.name === "string"
+      typeof u?.id !== "number" ||
+      typeof u?.email !== "string" ||
+      typeof u?.name !== "string"
     ) {
-      return { user, token };
+      return { user: null, token };
     }
-  } catch {
+    const user: PublicUser = {
+      id: u.id,
+      name: u.name,
+      email: u.email,
+    };
+    return { user, token };
+  } catch (e) {
+    if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+      redirect("/auth/session-expired");
+    }
     return { user: null, token };
   }
-  return { user: null, token };
 }
 
 export async function setAuthCookies(user: PublicUser, token: string) {

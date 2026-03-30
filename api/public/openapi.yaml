@@ -1,31 +1,54 @@
 openapi: 3.0.3
 info:
-  title: API eMatrícula — Utilizadores
+  title: API eMatrícula — Usuários
   description: |
-    Rotas HTTP expostas em `routes/api.php` (prefixo `/api`).
+    Especificação das rotas HTTP definidas em `routes/api.php`. A URL base em `servers` já inclui o
+    prefixo `/api` usado pelo Laravel; os caminhos abaixo são relativos a essa base (sem repetir `api`).
 
     Rotas autenticadas usam **Laravel Sanctum** (`Authorization: Bearer <token>`) e o middleware
-    `InitializeCompany`: o utilizador autenticado deve estar associado a uma empresa; caso contrário
+    `InitializeCompany`: o usuário autenticado precisa estar vinculado a uma empresa; caso contrário
     a API pode responder com **404** (“Company not found”).
   version: 1.0.0
 
 servers:
-  - url: http://localhost:8080
-    description: Docker Compose (nginx, porta HTTP por defeito)
-  - url: http://localhost
-    description: Servidor local (ajuste a porta se necessário)
+  - url: http://localhost:8080/api
+    description: Docker Compose (nginx, HTTP na porta padrão)
+  - url: http://localhost/api
+    description: Ambiente local (ajuste host/porta se necessário)
 
 tags:
-  - name: Users
-    description: Gestão e autenticação de utilizadores
+  - name: Usuários
+    description: Cadastro, autenticação e gestão de usuários
 
 paths:
-  /api/users:
+  /user/me:
     get:
-      tags: [Users]
-      summary: Listar utilizadores (paginado)
+      tags: [Usuários]
+      summary: Obter o usuário autenticado
       description: |
-        Aceita filtros e ordenação via query string (formato típico do Laravel), por exemplo:
+        Retorna o perfil do usuário associado ao token Bearer. Útil para validar sessão e obter dados
+        atualizados.
+      operationId: userMe
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /users:
+    get:
+      tags: [Usuários]
+      summary: Listar usuários (paginado)
+      description: |
+        Aceita filtros e ordenação na query string (padrão Laravel), por exemplo:
         `filters[name]=João`, `orderBy[id]=desc`, `per_page=15`.
       operationId: usersIndex
       security:
@@ -63,12 +86,12 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserPaginator"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/NaoAutorizado"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/NaoEncontrado"
     post:
-      tags: [Users]
-      summary: Criar utilizador
+      tags: [Usuários]
+      summary: Criar usuário
       operationId: usersStore
       security:
         - sanctum: []
@@ -80,22 +103,22 @@ paths:
               $ref: "#/components/schemas/UserWrite"
       responses:
         "201":
-          description: Utilizador criado
+          description: Usuário criado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserWrapped"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/NaoAutorizado"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/NaoEncontrado"
         "422":
-          $ref: "#/components/responses/ValidationError"
+          $ref: "#/components/responses/ErroValidacao"
 
-  /api/users/register:
+  /users/register:
     post:
-      tags: [Users]
-      summary: Registar empresa e primeiro utilizador
+      tags: [Usuários]
+      summary: Registrar empresa e primeiro usuário
       operationId: usersRegister
       requestBody:
         required: true
@@ -105,20 +128,20 @@ paths:
               $ref: "#/components/schemas/UserRegisterBody"
       responses:
         "201":
-          description: Utilizador criado (sem token no recurso, salvo lógica adicional)
+          description: Usuário criado (sem token no recurso, salvo lógica adicional)
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserWrapped"
         "422":
-          $ref: "#/components/responses/ValidationError"
+          $ref: "#/components/responses/ErroValidacao"
         "500":
-          description: Erro de servidor (ex. credenciais ou falha não mapeada)
+          description: Erro interno do servidor (ex. credenciais ou falha não mapeada)
 
-  /api/users/login:
+  /users/login:
     post:
-      tags: [Users]
-      summary: Iniciar sessão (token Sanctum)
+      tags: [Usuários]
+      summary: Login (token Sanctum)
       operationId: usersLogin
       requestBody:
         required: true
@@ -134,16 +157,16 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserWrapped"
         "422":
-          $ref: "#/components/responses/ValidationError"
+          $ref: "#/components/responses/ErroValidacao"
         "500":
           description: Credenciais inválidas ou erro não tratado como 401
 
-  /api/users/{id}:
+  /users/{id}:
     parameters:
       - $ref: "#/components/parameters/UserId"
     get:
-      tags: [Users]
-      summary: Obter utilizador por ID
+      tags: [Usuários]
+      summary: Obter usuário por ID
       operationId: usersShow
       security:
         - sanctum: []
@@ -155,14 +178,14 @@ paths:
               schema:
                 $ref: "#/components/schemas/UserWrapped"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/NaoAutorizado"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/NaoEncontrado"
     put:
-      tags: [Users]
-      summary: Atualizar utilizador
+      tags: [Usuários]
+      summary: Atualizar usuário
       description: |
-        `password` é opcional na atualização; quando omitido ou nulo, a palavra-passe não é alterada
+        O campo `password` é opcional na atualização; quando omitido ou nulo, a senha não é alterada
         pelas regras de validação atuais.
       operationId: usersUpdate
       security:
@@ -175,56 +198,56 @@ paths:
               $ref: "#/components/schemas/UserWriteUpdate"
       responses:
         "200":
-          description: Utilizador atualizado
+          description: Usuário atualizado
           content:
             application/json:
               schema:
                 $ref: "#/components/schemas/UserWrapped"
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/NaoAutorizado"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/NaoEncontrado"
         "422":
-          $ref: "#/components/responses/ValidationError"
+          $ref: "#/components/responses/ErroValidacao"
     delete:
-      tags: [Users]
-      summary: Eliminar utilizador
+      tags: [Usuários]
+      summary: Excluir usuário
       operationId: usersDestroy
       security:
         - sanctum: []
       responses:
         "204":
-          description: Sem corpo
+          description: Sem corpo na resposta
         "401":
-          $ref: "#/components/responses/Unauthorized"
+          $ref: "#/components/responses/NaoAutorizado"
         "404":
-          $ref: "#/components/responses/NotFound"
+          $ref: "#/components/responses/NaoEncontrado"
 
 components:
   securitySchemes:
     sanctum:
       type: http
       scheme: bearer
-      bearerFormat: Sanctum personal access token
-      description: Token devolvido em `POST /api/users/login` (campo `data.token` no JSON).
+      bearerFormat: Token de acesso pessoal (Sanctum)
+      description: Token retornado em `POST /users/login` (campo `data.token` no JSON).
 
   parameters:
     UserId:
       name: id
       in: path
       required: true
-      description: Identificador do utilizador (chave primária).
+      description: Identificador do usuário (chave primária).
       schema:
         type: integer
         minimum: 1
 
   responses:
-    Unauthorized:
+    NaoAutorizado:
       description: Não autenticado (Sanctum)
-    NotFound:
+    NaoEncontrado:
       description: Recurso não encontrado ou empresa não resolvida pelo middleware
-    ValidationError:
-      description: Erro de validação Laravel
+    ErroValidacao:
+      description: Erro de validação do Laravel
       content:
         application/json:
           schema:
@@ -246,7 +269,7 @@ components:
         token:
           type: string
           nullable: true
-          description: Presente após login (Sanctum plain text token).
+          description: Presente após o login (token em texto plano do Sanctum).
         created_at:
           type: string
           format: date-time
@@ -258,7 +281,7 @@ components:
 
     UserWrapped:
       description: |
-        Resposta de `JsonResource` com `$wrap = 'data'` (valor por defeito no Laravel): o objeto do
+        Resposta de `JsonResource` com `$wrap = 'data'` (padrão no Laravel): o objeto retornado por
         `UserResource::toArray()` fica dentro da chave `data`.
       type: object
       required: [data]
@@ -340,7 +363,7 @@ components:
           type: string
           nullable: true
           minLength: 8
-          description: Opcional; se omitido, mantém-se a palavra-passe atual.
+          description: Opcional; se omitido, mantém a senha atual.
 
     UserRegisterBody:
       type: object
@@ -385,7 +408,7 @@ components:
 
     LaravelValidationError:
       type: object
-      description: Formato habitual de validação do Laravel.
+      description: Formato usual de validação do Laravel.
       properties:
         message:
           type: string

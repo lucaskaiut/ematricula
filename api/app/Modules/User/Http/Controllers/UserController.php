@@ -3,13 +3,14 @@
 namespace App\Modules\User\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Company\Domain\Services\CompanyService;
 use App\Modules\User\Domain\Services\UserService;
 use App\Modules\User\Http\Resources\UserResource;
 use App\Modules\User\Http\Requests\UserRequest;
 use App\Modules\Core\Http\Traits\ControllerTrait;
 use App\Modules\User\Http\Requests\UserLoginRequest;
 use App\Modules\User\Http\Requests\UserRegisterRequest;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
@@ -39,5 +40,13 @@ class UserController extends Controller
 
             return $this->respondWithItem($model, 201);
         });
+    }
+
+    public function me(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(! $user, 401);
+
+        return $this->respondWithItem($user);
     }
 }

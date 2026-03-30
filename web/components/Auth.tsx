@@ -36,7 +36,6 @@ export function Auth({
     }
 
     router.push("/");
-    setIsLoading(false);
   };
 
   return (
