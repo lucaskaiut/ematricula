@@ -82,7 +82,6 @@ export async function logoutAction() {
 }
 
 async function fetchUserFromServer(): Promise<User | null> {
-  console.log("fetchUserFromServer");
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
 
