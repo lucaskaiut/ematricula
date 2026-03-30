@@ -47,6 +47,7 @@ export async function loginAction(
 
     return { success: true };
   } catch (error) {
+    console.error(error);
     return { error: "E-mail ou senha inválidos.", success: false };
   }
 }
