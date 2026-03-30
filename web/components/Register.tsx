@@ -1,16 +1,11 @@
 "use client";
 
-import { RegisterActionResult } from "@/app/actions/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import type { RegisterRequestBody } from "@/types/api";
 
-export function Register({
-  handleRegister,
-}: {
-  handleRegister: (data: RegisterRequestBody) => Promise<RegisterActionResult>;
-}) {
+export function Register() {
   const [data, setData] = useState<RegisterRequestBody>({
     company: {
       name: "",
@@ -25,33 +20,6 @@ export function Register({
   });
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
-
-  const handleSubmit = async () => {
-    setIsLoading(true);
-    const response = await handleRegister(data);
-
-    if (!response.ok) {
-      const msg =
-        response.message ||
-        "Não foi possível concluir o cadastro. Verifique os dados.";
-      toast.error(msg, {
-        position: "bottom-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    router.push("/");
-    setIsLoading(false);
-  };
 
   return (
     <main className="flex min-h-dvh w-full justify-center bg-ematricula-page-bg px-4 pb-8 pt-16 sm:px-6 sm:pb-12 sm:pt-24 md:pb-[54px] md:pt-[102px]">
@@ -74,7 +42,6 @@ export function Register({
             className="pb-4"
             onSubmit={(e) => {
               e.preventDefault();
-              void handleSubmit();
             }}
           >
             <div className="flex flex-col gap-6 sm:gap-8">

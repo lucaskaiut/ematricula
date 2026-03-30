@@ -1,15 +1,9 @@
 "use client";
 
-import { LoginActionResult } from "@/app/actions/auth";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bounce, ToastContainer, toast } from "react-toastify";
 
-export function Auth({
-  handleLogin,
-}: {
-  handleLogin: (email: string, password: string) => Promise<LoginActionResult>;
-}) {
+export function Auth() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -17,25 +11,8 @@ export function Auth({
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    const response = await handleLogin(email, password);
-
-    if (!response.ok) {
-      toast.error("Há um problema com suas credenciais.", {
-        position: "bottom-center",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: false,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-        transition: Bounce,
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    router.push("/");
+    
+    setIsLoading(false);
   };
 
   return (
@@ -131,7 +108,6 @@ export function Auth({
           </div>
         </div>
       </section>
-      <ToastContainer />
     </main>
   );
 }

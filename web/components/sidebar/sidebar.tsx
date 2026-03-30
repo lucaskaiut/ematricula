@@ -20,7 +20,7 @@ function isActivePath(
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { isOpen } = useSidebar();
+  const { isOpen, close } = useSidebar();
 
   const nav = (
     <nav className="px-2 py-2">

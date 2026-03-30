@@ -7,9 +7,8 @@ import {
   useSidebar,
 } from "@/components/sidebar/sidebar-provider";
 import { Sidebar } from "@/components/sidebar/sidebar";
-import { PublicUser } from "@/types/api";
 
-function ShellInner({ children, user }: { children: React.ReactNode, user: PublicUser }) {
+function ShellInner({ children }: { children: React.ReactNode }) {
   const { isOpen, toggle } = useSidebar();
 
   return (
@@ -40,7 +39,6 @@ function ShellInner({ children, user }: { children: React.ReactNode, user: Publi
                 <Menu className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-2">
-                <div className="w-9 h-9 rounded-full bg-ematricula-link text-white flex items-center justify-center">{user.name.at(0)}</div>
               </div>
             </div>
           </header>
@@ -55,10 +53,10 @@ function ShellInner({ children, user }: { children: React.ReactNode, user: Publi
   );
 }
 
-export function AuthedShell({ children, user }: { children: React.ReactNode, user: PublicUser }) {
+export function AuthedShell({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider defaultOpen>
-      <ShellInner user={user}>{children}</ShellInner>
+      <ShellInner>{children}</ShellInner>
     </SidebarProvider>
   );
 }
