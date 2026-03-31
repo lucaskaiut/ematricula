@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use App\Modules\Company\Domain\Models\Company;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,11 +16,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
+        $company = Company::query()->first();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
+        if (!$company) {
+            throw new \RuntimeException('Nenhuma company encontrada. Crie uma company antes de rodar o seed de usuários.');
+        }
+
+        User::factory()
+            ->count(50)
+            ->create([
+                'company_id' => $company->id,
+            ]);
     }
 }

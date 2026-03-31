@@ -134,8 +134,34 @@ trait ServiceTrait
 
     protected function applyOrdering(Builder $query, array $orderBy): void
     {
-        foreach ($orderBy as $field => $direction) {
+        $normalized = $this->normalizeOrderBy($orderBy);
+
+        foreach ($normalized as $field => $direction) {
             $query->orderBy($field, $direction);
         }
+    }
+
+    protected function allowedOrderBy(): array
+    {
+        return [];
+    }
+
+    protected function normalizeOrderBy(array $orderBy): array
+    {
+        $allowed = $this->allowedOrderBy();
+        $hasAllowList = count($allowed) > 0;
+        $allowedMap = $hasAllowList ? array_fill_keys($allowed, true) : [];
+
+        $normalized = [];
+
+        foreach ($orderBy as $field => $direction) {
+            if (!is_string($field) || $field === '') continue;
+            if ($hasAllowList && !isset($allowedMap[$field])) continue;
+
+            $dir = is_string($direction) ? strtolower(trim($direction)) : 'asc';
+            $normalized[$field] = $dir === 'desc' ? 'desc' : 'asc';
+        }
+
+        return $normalized;
     }
 }
