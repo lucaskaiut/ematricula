@@ -6,6 +6,7 @@ export type Column<T> = {
   key: keyof T | string;
   title: string;
   render?: (row: T) => React.ReactNode;
+  format?: (value: unknown, row: T) => React.ReactNode;
   priority?: number;
   align?: ColumnAlignment;
   minWidth?: number;

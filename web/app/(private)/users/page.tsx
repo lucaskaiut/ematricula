@@ -27,6 +27,16 @@ function getSort(searchParams: URLSearchParams): Array<{ key: string; direction:
   return result;
 }
 
+function formatDateTime(value: unknown) {
+  if (typeof value !== 'string' || !value) return '—';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(d);
+}
+
 export default function UserPage() {
   const router = useRouter();
   const pathname = usePathname();
@@ -54,8 +64,20 @@ export default function UserPage() {
       { key: 'id', title: '#', priority: 0, sortable: true },
       { key: 'name', title: 'Nome', priority: 1, sortable: true },
       { key: 'email', title: 'E-mail', priority: 2, sortable: true },
-      { key: 'created_at', title: 'Criado em', priority: 3, sortable: true },
-      { key: 'updated_at', title: 'Atualizado em', priority: 4, sortable: true },
+      {
+        key: 'created_at',
+        title: 'Criado em',
+        priority: 3,
+        sortable: true,
+        format: (value: unknown) => formatDateTime(value),
+      },
+      {
+        key: 'updated_at',
+        title: 'Atualizado em',
+        priority: 4,
+        sortable: true,
+        format: (value: unknown) => formatDateTime(value),
+      },
     ],
     [],
   );

@@ -40,6 +40,7 @@ function renderValue<T>(row: T, col: Column<T>) {
     typeof col.key === 'string' && !(col.key in (row as object))
       ? (row as Record<string, unknown>)[col.key]
       : (row as T)[key];
+  if (col.format) return col.format(value, row);
   if (value === null || value === undefined) return <span className="text-ematricula-text-muted">—</span>;
   if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
