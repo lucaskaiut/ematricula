@@ -39,3 +39,40 @@ export type PublicUser = {
   name: string;
   email: string;
 };
+
+export type PersonProfile = 'student' | 'teacher';
+
+export type PersonStatus = 'active' | 'inactive';
+
+export type PersonSummary = {
+  id: number;
+  full_name: string;
+  profile: PersonProfile;
+};
+
+export type PersonUserRef = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+export type PersonAttributes = {
+  id: number;
+  company_id: number;
+  full_name: string;
+  birth_date: string;
+  cpf: string | null;
+  phone: string;
+  email: string;
+  guardian_person_id: number | null;
+  status: PersonStatus;
+  notes: string | null;
+  profile: PersonProfile;
+  created_by: number | null;
+  updated_by: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  guardian?: PersonSummary | null;
+  creator?: PersonUserRef | null;
+  updater?: PersonUserRef | null;
+};
