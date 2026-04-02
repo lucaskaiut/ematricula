@@ -122,14 +122,50 @@ trait ServiceTrait
     protected function applyConditions(Builder $query, array $conditions): void
     {
         foreach ($conditions as $field => $value) {
-            if (is_array($value) && count($value) === 2) {
-                [$operator, $val] = $value;
-                $query->where($field, $operator, $val);
+            if (! is_array($value)) {
+                $query->where($field, '=', $value);
+
                 continue;
             }
 
-            $query->where($field, '=', $value);
+            $count = count($value);
+
+            if ($count === 2) {
+                [$operator, $val] = $value;
+                $query->where($field, $operator, $val);
+
+                continue;
+            }
+
+            if ($count === 3) {
+                [$operator, $a, $b] = $value;
+
+                if (is_string($operator) && strtolower($operator) === 'between') {
+                    [$start, $end] = $this->normalizeBetweenBounds((string) $a, (string) $b);
+                    $query->whereBetween($field, [$start, $end]);
+
+                    continue;
+                }
+            }
         }
+    }
+
+    /**
+     * @return array{0: string, 1: string}
+     */
+    private function normalizeBetweenBounds(string $start, string $end): array
+    {
+        $dateOnly = '/^\d{4}-\d{2}-\d{2}$/';
+
+        if (preg_match($dateOnly, $start) === 1) {
+            $start = $start . ' 00:00:00';
+        }
+
+        if (preg_match($dateOnly, $end) === 1) {
+            $end = $end . ' 23:59:59';
+        }
+
+        return [$start, $end];
     }
 
     protected function applyOrdering(Builder $query, array $orderBy): void
