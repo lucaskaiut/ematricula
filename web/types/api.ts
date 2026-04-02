@@ -56,6 +56,25 @@ export type PersonUserRef = {
   email: string;
 };
 
+export type ModalityUserRef = {
+  id: number;
+  name: string;
+  email: string;
+};
+
+export type ModalityAttributes = {
+  id: number;
+  company_id: number;
+  name: string;
+  description: string | null;
+  created_by: number | null;
+  updated_by: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  creator?: ModalityUserRef | null;
+  updater?: ModalityUserRef | null;
+};
+
 export type PersonAttributes = {
   id: number;
   company_id: number;

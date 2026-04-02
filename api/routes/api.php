@@ -1,12 +1,21 @@
 <?php
 
 use App\Modules\Company\Http\Middlewares\InitializeCompany;
+use App\Modules\Modality\Http\Controllers\ModalityController;
 use App\Modules\Person\Http\Controllers\PersonController;
 use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function () {
     Route::get('user/me', [UserController::class, 'me']);
+    Route::group(['prefix' => 'modalities'], function () {
+        Route::get('/', [ModalityController::class, 'index']);
+        Route::get('/{id}', [ModalityController::class, 'show']);
+        Route::post('/', [ModalityController::class, 'store']);
+        Route::put('/{id}', [ModalityController::class, 'update']);
+        Route::patch('/{id}', [ModalityController::class, 'update']);
+        Route::delete('/{id}', [ModalityController::class, 'destroy']);
+    });
     Route::group(['prefix' => 'persons'], function () {
         Route::get('/', [PersonController::class, 'index']);
         Route::get('/{id}', [PersonController::class, 'show']);
