@@ -9,3 +9,12 @@ export async function GET(request: Request) {
 
   return Response.json(response);
 }
+
+export async function POST(request: Request) {
+  const body = (await request.json()) as { name: string; email: string; password: string };
+
+  const api = new Api('/users');
+  const response = await api.post<UserAttributes>(body);
+
+  return Response.json(response);
+}

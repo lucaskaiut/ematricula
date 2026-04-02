@@ -9,6 +9,7 @@ export type Column<T> = {
   format?: (value: unknown, row: T) => React.ReactNode;
   priority?: number;
   align?: ColumnAlignment;
+  width?: number;
   minWidth?: number;
   sortable?: boolean;
   sortKey?: string;
@@ -24,16 +25,29 @@ export type PaginationMeta = {
   total: number;
 };
 
-export type DataGridProps<T> = {
+export type DataGridRootProps = {
+  children: React.ReactNode;
+  className?: string;
+  maxHeightClassName?: string;
+};
+
+export type DataGridTableProps<T> = {
   data: T[];
   columns: Column<T>[];
   loading?: boolean;
-  meta?: PaginationMeta;
-  onPageChange?: (page: number) => void;
   sort?: Array<{ key: string; direction: 'asc' | 'desc' }>;
   onSortChange?: (sort: Array<{ key: string; direction: 'asc' | 'desc' }>) => void;
+  onEdit?: (row: T) => void;
+  onDelete?: (row: T) => void;
   getRowId?: (row: T) => React.Key;
   emptyState?: React.ReactNode;
   className?: string;
   rowClassName?: (row: T) => string | undefined;
+};
+
+export type DataGridPaginationProps = {
+  meta: PaginationMeta;
+  onPageChange: (page: number) => void;
+  disabled?: boolean;
+  className?: string;
 };

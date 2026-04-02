@@ -7,6 +7,9 @@ function normalizePriority(priority?: number): number {
 }
 
 function minWidthForColumn<T>(col: Column<T>) {
+  if (typeof col.width === 'number' && Number.isFinite(col.width) && col.width > 0) {
+    return Math.trunc(col.width);
+  }
   if (typeof col.minWidth === 'number' && Number.isFinite(col.minWidth) && col.minWidth > 0) {
     return Math.trunc(col.minWidth);
   }

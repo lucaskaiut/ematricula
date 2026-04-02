@@ -24,8 +24,8 @@ function ShellInner({ children }: { children: React.ReactNode }) {
           <Sidebar />
         </div>
 
-        <div className="min-w-0 flex-1">
-          <header className="sticky top-0 z-30 border-b border-ematricula-border-input bg-ematricula-nav-surface backdrop-blur-md">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          <header className="sticky top-0 z-30 shrink-0 border-b border-ematricula-border-input bg-ematricula-nav-surface backdrop-blur-md">
             <div className="flex h-14 items-center gap-3 px-4 justify-between">
               <button
                 type="button"
@@ -42,7 +42,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </header>
-          <main className="px-4 py-6">{children}</main>
+          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
         </div>
       </div>
 
