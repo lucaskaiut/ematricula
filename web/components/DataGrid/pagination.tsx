@@ -135,7 +135,6 @@ export function DataGridPagination({
     <div
       className={cx(
         'sticky bottom-0 z-20 w-full shrink-0 rounded-b-xl border-t border-slate-200 bg-white px-4 py-3',
-        'shadow-[0_-10px_28px_-16px_rgba(15,23,42,0.18)]',
         className,
       )}
     >

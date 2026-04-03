@@ -1,8 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ListFilter } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   useCallback,
@@ -15,6 +13,7 @@ import {
 import { URL_ENCODED_STATE_KEY } from '@/lib/url-state';
 import { UserAttributes } from '@/types/api';
 import { DataGrid } from '@/components/DataGrid';
+import { Page } from '@/components/Page';
 import { deleteUser, listUsers, usersQueryKey } from './actions';
 import { UsersFilterBadges } from './users-filter-badges';
 import { UsersFiltersDrawer } from './users-filters-drawer';
@@ -230,18 +229,10 @@ export default function UserPage() {
   );
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-4 p-4">
-      <div className="flex shrink-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-ematricula-text-primary text-xl font-semibold tracking-tight sm:text-2xl">
-          Usuários
-        </h1>
-        <Link
-          href="/users/new"
-          className="inline-flex min-h-11 items-center justify-center rounded-(--ematricula-radius-control) bg-linear-to-br from-(--ematricula-cta-gradient-from) to-(--ematricula-cta-gradient-to) px-4 text-sm font-semibold text-white shadow-(--shadow-ematricula-cta) transition-opacity hover:opacity-95 sm:min-h-10"
-        >
-          Novo usuário
-        </Link>
-      </div>
+    <Page.Root>
+      <Page.Header title="Usuários" href="/users/new">
+        Novo usuário
+      </Page.Header>
 
       <UsersFiltersDrawer
         open={filtersOpen}
@@ -256,71 +247,54 @@ export default function UserPage() {
         onApply={handleApplyDrawerFilters}
       />
 
-      <div className="bg-ematricula-surface flex w-full shrink-0 flex-col gap-3 rounded-(--ematricula-radius-control) p-2 sm:flex-row sm:items-center sm:justify-between sm:p-3">
-        <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-            <input
-              value={searchDraft}
-              onChange={handleSearchChange}
-              className="border-ematricula-border-input text-ematricula-text-primary placeholder:text-ematricula-text-placeholder min-h-11 w-full max-w-md min-w-[min(100%,12rem)] shrink-0 rounded-(--ematricula-radius-control) border bg-white px-3.5 py-2 text-sm outline-none focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25 sm:w-auto sm:min-w-[14rem] sm:flex-1"
-              type="search"
-              name="user-name-filter"
-              autoComplete="off"
-              placeholder="Pesquisar por nome…"
-              aria-label="Pesquisar usuário por nome"
-            />
-            <UsersFilterBadges
-              state={usersState}
-              onClearName={() =>
-                replaceListState({
-                  ...usersStateRef.current,
-                  name: '',
-                  page: 1,
-                })
-              }
-              onClearEmail={() =>
-                replaceListState({
-                  ...usersStateRef.current,
-                  email: '',
-                  page: 1,
-                })
-              }
-              onClearCreatedRange={() =>
-                replaceListState({
-                  ...usersStateRef.current,
-                  createdFrom: '',
-                  createdTo: '',
-                  page: 1,
-                })
-              }
-              onClearUpdatedRange={() =>
-                replaceListState({
-                  ...usersStateRef.current,
-                  updatedFrom: '',
-                  updatedTo: '',
-                  page: 1,
-                })
-              }
-            />
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={() => setFiltersOpen(true)}
-          className="text-ematricula-text-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-(--ematricula-radius-control) border border-slate-200 bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-slate-50 sm:min-h-10"
-        >
-          <ListFilter
-            className="text-ematricula-text-muted h-4 w-4"
-            aria-hidden
+      <Page.Filters>
+        <Page.FiltersControls>
+          <Page.FiltersSearch
+            value={searchDraft}
+            onChange={handleSearchChange}
+            name="user-name-filter"
+            autoComplete="off"
+            placeholder="Pesquisar por nome…"
+            aria-label="Pesquisar usuário por nome"
           />
-          Filtros
-        </button>
-      </div>
+          <UsersFilterBadges
+            state={usersState}
+            onClearName={() =>
+              replaceListState({
+                ...usersStateRef.current,
+                name: '',
+                page: 1,
+              })
+            }
+            onClearEmail={() =>
+              replaceListState({
+                ...usersStateRef.current,
+                email: '',
+                page: 1,
+              })
+            }
+            onClearCreatedRange={() =>
+              replaceListState({
+                ...usersStateRef.current,
+                createdFrom: '',
+                createdTo: '',
+                page: 1,
+              })
+            }
+            onClearUpdatedRange={() =>
+              replaceListState({
+                ...usersStateRef.current,
+                updatedFrom: '',
+                updatedTo: '',
+                page: 1,
+              })
+            }
+          />
+        </Page.FiltersControls>
+        <Page.FiltersDrawerTrigger onClick={() => setFiltersOpen(true)} />
+      </Page.Filters>
 
-      <DataGrid.Root
-        className="min-h-0"
-        maxHeightClassName="max-h-[calc(100dvh-18rem)]"
-      >
+      <Page.List>
         <DataGrid.Table<UserAttributes>
           data={response?.data ?? []}
           columns={columns}
@@ -345,7 +319,7 @@ export default function UserPage() {
           onPageChange={handlePageChange}
           disabled={loading}
         />
-      </DataGrid.Root>
-    </div>
+      </Page.List>
+    </Page.Root>
   );
 }
