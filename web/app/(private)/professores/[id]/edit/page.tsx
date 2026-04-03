@@ -48,6 +48,7 @@ export default async function EditProfessorPage({ params }: PageProps) {
         guardian_person_id: '',
         status: person.status,
         notes: person.notes ?? '',
+        modality_ids: (person.modalities ?? []).map((m) => m.id),
       }}
     />
   );

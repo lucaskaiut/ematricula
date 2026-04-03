@@ -48,8 +48,16 @@ export const personFormValuesSchema = (profile: PersonProfile) =>
       guardian_person_id: z.string().default(''),
       status: z.enum(['active', 'inactive'] satisfies [PersonStatus, PersonStatus]),
       notes: z.string().max(10000).default(''),
+      modality_ids: z.array(z.number().int().positive()).max(50).default([]),
     })
     .superRefine((data, ctx) => {
+      if (profile === 'student' && data.modality_ids.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: 'Modalidades não se aplicam a alunos.',
+          path: ['modality_ids'],
+        });
+      }
       if (profile !== 'student') return;
       if (!personIsMinorFromIsoDate(data.birth_date)) return;
       const raw = data.guardian_person_id.trim();
@@ -71,6 +79,7 @@ export type PersonFormValues = {
   guardian_person_id: string;
   status: PersonStatus;
   notes: string;
+  modality_ids: number[];
 };
 
 export type PersonFormMode = 'create' | 'edit';

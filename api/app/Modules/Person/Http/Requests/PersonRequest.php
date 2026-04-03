@@ -94,6 +94,19 @@ class PersonRequest extends FormRequest
             'status' => ['required', Rule::enum(PersonStatus::class)],
             'notes' => ['nullable', 'string', 'max:10000'],
             'profile' => ['required', Rule::enum(PersonProfile::class)],
+            'modality_ids' => [
+                Rule::excludeIf(fn () => $this->input('profile') !== PersonProfile::Teacher->value),
+                'nullable',
+                'array',
+                'max:50',
+            ],
+            'modality_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists('modalities', 'id')->where(
+                    fn ($q) => $q->where('company_id', $companyId),
+                ),
+            ],
         ];
     }
 

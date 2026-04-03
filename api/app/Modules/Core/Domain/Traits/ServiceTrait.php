@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Modules\Core\Domain\Traits;
 
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
 
 trait ServiceTrait
@@ -16,7 +16,6 @@ trait ServiceTrait
      *
      * protected Model $model;
      */
-
     private function model(): Model
     {
         return app($this->model);
@@ -119,8 +118,21 @@ trait ServiceTrait
         return (bool) $model->delete();
     }
 
+    /**
+     * Map of request filter keys to [relationName, relatedColumn].
+     * Each listed modality id adds a whereHas (AND): the model must be related to all given ids.
+     *
+     * @return array<string, array{0: string, 1: string}>
+     */
+    protected function relationshipAllOfFilters(): array
+    {
+        return [];
+    }
+
     protected function applyConditions(Builder $query, array $conditions): void
     {
+        $conditions = $this->applyRelationshipAllOfFilters($query, $conditions);
+
         foreach ($conditions as $field => $value) {
             if (! is_array($value)) {
                 $query->where($field, '=', $value);
@@ -151,6 +163,55 @@ trait ServiceTrait
     }
 
     /**
+     * @param  array<string, mixed>  $conditions
+     * @return array<string, mixed>
+     */
+    protected function applyRelationshipAllOfFilters(Builder $query, array $conditions): array
+    {
+        foreach ($this->relationshipAllOfFilters() as $filterKey => $spec) {
+            if (! array_key_exists($filterKey, $conditions)) {
+                continue;
+            }
+
+            $raw = $conditions[$filterKey];
+            unset($conditions[$filterKey]);
+
+            [$relation, $column] = $spec;
+            $ids = $this->normalizePositiveIntList($raw);
+
+            foreach ($ids as $id) {
+                $query->whereHas($relation, fn (Builder $q) => $q->where($column, $id));
+            }
+        }
+
+        return $conditions;
+    }
+
+    /**
+     * @return list<int>
+     */
+    protected function normalizePositiveIntList(mixed $raw): array
+    {
+        if ($raw === null || $raw === '') {
+            return [];
+        }
+
+        if (! is_array($raw)) {
+            $raw = [$raw];
+        }
+
+        $ids = [];
+        foreach ($raw as $item) {
+            $id = (int) $item;
+            if ($id > 0) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
      * @return array{0: string, 1: string}
      */
     private function normalizeBetweenBounds(string $start, string $end): array
@@ -158,11 +219,11 @@ trait ServiceTrait
         $dateOnly = '/^\d{4}-\d{2}-\d{2}$/';
 
         if (preg_match($dateOnly, $start) === 1) {
-            $start = $start . ' 00:00:00';
+            $start = $start.' 00:00:00';
         }
 
         if (preg_match($dateOnly, $end) === 1) {
-            $end = $end . ' 23:59:59';
+            $end = $end.' 23:59:59';
         }
 
         return [$start, $end];
@@ -191,8 +252,12 @@ trait ServiceTrait
         $normalized = [];
 
         foreach ($orderBy as $field => $direction) {
-            if (!is_string($field) || $field === '') continue;
-            if ($hasAllowList && !isset($allowedMap[$field])) continue;
+            if (! is_string($field) || $field === '') {
+                continue;
+            }
+            if ($hasAllowList && ! isset($allowedMap[$field])) {
+                continue;
+            }
 
             $dir = is_string($direction) ? strtolower(trim($direction)) : 'asc';
             $normalized[$field] = $dir === 'desc' ? 'desc' : 'asc';

@@ -49,6 +49,7 @@ export default async function EditAlunoPage({ params }: PageProps) {
           person.guardian_person_id !== null ? String(person.guardian_person_id) : '',
         status: person.status,
         notes: person.notes ?? '',
+        modality_ids: [],
       }}
     />
   );

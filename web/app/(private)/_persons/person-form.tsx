@@ -13,8 +13,9 @@ import type { PersonFormMode, PersonFormValues } from '@/lib/validations/person-
 import { personFormValuesSchema } from '@/lib/validations/person-form';
 import type { PersonAttributes, PersonProfile } from '@/types/api';
 
-import { listGuardianOptions } from './actions';
+import { listGuardianOptions, listModalitiesOptions } from './actions';
 import { savePersonAction, type SavePersonActionResult } from './save-person-action';
+import { TeacherModalityPicker } from './teacher-modality-picker';
 
 export type PersonFormProps = {
   mode: PersonFormMode;
@@ -31,6 +32,7 @@ export type PersonFormProps = {
     guardian_person_id: string;
     status: 'active' | 'inactive';
     notes: string;
+    modality_ids: number[];
   };
 };
 
@@ -52,6 +54,7 @@ export function PersonForm({
   const maskedDefaults = useMemo(
     () => ({
       ...defaultValues,
+      modality_ids: defaultValues.modality_ids ?? [],
       cpf: maskBrazilianCpf(defaultValues.cpf ?? ''),
       phone: maskBrazilianPhone(defaultValues.phone ?? ''),
     }),
@@ -61,6 +64,7 @@ export function PersonForm({
       defaultValues.email,
       defaultValues.full_name,
       defaultValues.guardian_person_id,
+      defaultValues.modality_ids,
       defaultValues.notes,
       defaultValues.phone,
       defaultValues.status,
@@ -81,6 +85,17 @@ export function PersonForm({
     queryFn: () => listGuardianOptions(),
     enabled: showGuardian === true,
   });
+
+  const { data: modalitiesRes } = useQuery({
+    queryKey: ['modalities', 'picker-options'],
+    queryFn: () => listModalitiesOptions(),
+    enabled: profile === 'teacher',
+  });
+
+  const modalityOptions = useMemo(
+    () => modalitiesRes?.data ?? [],
+    [modalitiesRes?.data],
+  );
 
   const guardianOptions = useMemo(() => {
     const rows = guardiansRes?.data ?? [];
@@ -103,6 +118,7 @@ export function PersonForm({
         'guardian_person_id',
         'status',
         'notes',
+        'modality_ids',
       ];
       for (const key of keys) {
         const msg = result.fieldErrors[key];
@@ -345,6 +361,28 @@ export function PersonForm({
                 </p>
               ) : null}
             </div>
+
+            {profile === 'teacher' ? (
+              <div className="min-w-0 lg:col-span-2">
+                <Controller
+                  name="modality_ids"
+                  control={form.control}
+                  render={({ field }) => (
+                    <TeacherModalityPicker
+                      options={modalityOptions}
+                      value={field.value}
+                      onChange={field.onChange}
+                      disabled={pending}
+                    />
+                  )}
+                />
+                {form.formState.errors.modality_ids ? (
+                  <p className="mt-2 text-sm text-red-600" role="alert">
+                    {form.formState.errors.modality_ids.message}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
 
             <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end lg:col-span-2">
               <Link

@@ -31,7 +31,7 @@ class PersonController extends Controller
         $result = $this->service()->paginate(
             perPage: $perPage,
             conditions: $filters,
-            relations: ['guardian'],
+            relations: ['guardian', 'modalities'],
             orderBy: $orderBy
         );
 
@@ -43,7 +43,7 @@ class PersonController extends Controller
         $model = $this->service()->findOrFail(
             $id,
             ['*'],
-            ['guardian', 'creator', 'updater']
+            ['guardian', 'creator', 'updater', 'modalities']
         );
 
         return $this->respondWithItem($model);

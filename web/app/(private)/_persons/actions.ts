@@ -1,5 +1,5 @@
 import type { ApiResponse } from '@/lib/api';
-import type { PersonAttributes, PersonProfile } from '@/types/api';
+import type { ModalityAttributes, PersonAttributes, PersonProfile } from '@/types/api';
 
 export type PersonSort = Array<{ key: string; direction: 'asc' | 'desc' }>;
 
@@ -11,6 +11,7 @@ export function personsQueryKey(input: {
   email: string;
   status: '' | 'active' | 'inactive';
   guardianPersonId: string;
+  modalityIds: number[];
   createdFrom: string;
   createdTo: string;
   updatedFrom: string;
@@ -26,6 +27,14 @@ export async function listPersons(input: {
   const res = await fetch(`/api/persons?${input.searchParams.toString()}`);
   if (!res.ok) throw new Error('Falha ao carregar pessoas');
   return (await res.json()) as ApiResponse<PersonAttributes[]>;
+}
+
+export async function listModalitiesOptions() {
+  const p = new URLSearchParams();
+  p.set('per_page', '500');
+  const res = await fetch(`/api/modalities?${p.toString()}`);
+  if (!res.ok) throw new Error('Falha ao carregar modalidades');
+  return (await res.json()) as ApiResponse<ModalityAttributes[]>;
 }
 
 export async function listGuardianOptions() {

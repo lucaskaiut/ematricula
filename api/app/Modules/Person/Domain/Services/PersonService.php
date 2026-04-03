@@ -6,8 +6,10 @@ namespace App\Modules\Person\Domain\Services;
 
 use App\Modules\Core\Domain\Contracts\ServiceContract;
 use App\Modules\Core\Domain\Traits\ServiceTrait;
+use App\Modules\Person\Domain\Enums\PersonProfile;
 use App\Modules\Person\Domain\Models\Person;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Model;
 
 class PersonService implements ServiceContract
 {
@@ -27,6 +29,34 @@ class PersonService implements ServiceContract
             'created_at',
             'updated_at',
         ];
+    }
+
+    protected function relationshipAllOfFilters(): array
+    {
+        return [
+            'modality_ids' => ['modalities', 'modalities.id'],
+        ];
+    }
+
+    public function create(array $attributes): Model
+    {
+        $modalityIds = $this->pullModalityIdsForSync($attributes);
+        /** @var Person $person */
+        $person = $this->model()->create($attributes);
+        $this->syncModalitiesForTeacher($person->fresh(), $modalityIds);
+
+        return $person->fresh(['modalities']);
+    }
+
+    public function update(int|string $id, array $attributes): Model
+    {
+        $modalityIds = $this->pullModalityIdsForSync($attributes);
+        $model = $this->findOrFail($id);
+        $model->update($attributes);
+        $model->refresh();
+        $this->syncModalitiesForTeacher($model, $modalityIds);
+
+        return $model->fresh(['modalities']);
     }
 
     public function paginate(
@@ -56,5 +86,39 @@ class PersonService implements ServiceContract
         $this->applyOrdering($query, $orderBy);
 
         return $query->paginate($perPage, $columns);
+    }
+
+    /**
+     * @return ?array<int> null = omit sync; [] = detach all (teacher) or detach (non-teacher)
+     */
+    private function pullModalityIdsForSync(array &$attributes): ?array
+    {
+        if (! array_key_exists('modality_ids', $attributes)) {
+            return null;
+        }
+
+        $raw = $attributes['modality_ids'];
+        unset($attributes['modality_ids']);
+
+        if (! is_array($raw)) {
+            return [];
+        }
+
+        return $this->normalizePositiveIntList($raw);
+    }
+
+    private function syncModalitiesForTeacher(Person $person, ?array $modalityIds): void
+    {
+        if ($modalityIds === null) {
+            return;
+        }
+
+        if ($person->profile !== PersonProfile::Teacher) {
+            $person->modalities()->detach();
+
+            return;
+        }
+
+        $person->modalities()->sync($modalityIds);
     }
 }

@@ -8,6 +8,7 @@ export default function ProfessoresPage() {
       title="Professores"
       newHref="/professores/new"
       searchPlaceholder="Pesquisar por nome…"
+      enableModalityFilter
     />
   );
 }

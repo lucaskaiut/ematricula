@@ -9,9 +9,11 @@ import { DayPicker, type DateRange } from 'react-day-picker';
 
 import { SearchSelect } from '@/components/SearchSelect';
 import type { PersonAttributes } from '@/types/api';
+import { useQuery } from '@tanstack/react-query';
 
-import { searchPeople } from './actions';
+import { listModalitiesOptions, searchPeople } from './actions';
 import type { PersonsListUrlState } from './persons-url-state';
+import { TeacherModalityPicker } from './teacher-modality-picker';
 
 import 'react-day-picker/style.css';
 
@@ -21,12 +23,14 @@ export type PersonsFiltersDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   showGuardianFilter?: boolean;
+  showModalityFilter?: boolean;
   committed: Pick<
     PersonsListUrlState,
     | 'email'
     | 'status'
     | 'guardianPersonId'
     | 'guardianPersonName'
+    | 'modalityIds'
     | 'createdFrom'
     | 'createdTo'
     | 'updatedFrom'
@@ -39,6 +43,7 @@ export type PersonsFiltersDrawerProps = {
       | 'status'
       | 'guardianPersonId'
       | 'guardianPersonName'
+      | 'modalityIds'
       | 'createdFrom'
       | 'createdTo'
       | 'updatedFrom'
@@ -286,12 +291,14 @@ export function PersonsFiltersDrawer({
   open,
   onOpenChange,
   showGuardianFilter = false,
+  showModalityFilter = false,
   committed,
   onApply,
 }: PersonsFiltersDrawerProps) {
   const titleId = useId();
   const [email, setEmail] = useState(committed.email);
   const [status, setStatus] = useState<PersonsListUrlState['status']>(committed.status);
+  const [modalityIds, setModalityIds] = useState<number[]>(() => [...committed.modalityIds]);
   const [guardian, setGuardian] = useState<GuardianFilterOption | null>(() =>
     committedToGuardianOption(committed),
   );
@@ -307,12 +314,20 @@ export function PersonsFiltersDrawer({
     const id = requestAnimationFrame(() => {
       setEmail(committed.email);
       setStatus(committed.status);
+      setModalityIds([...committed.modalityIds]);
       setGuardian(committedToGuardianOption(committed));
       setCreated(rangeFromIso(committed.createdFrom, committed.createdTo));
       setUpdated(rangeFromIso(committed.updatedFrom, committed.updatedTo));
     });
     return () => cancelAnimationFrame(id);
   }, [open, committed]);
+
+  const { data: modalitiesRes } = useQuery({
+    queryKey: ['modalities', 'filter-drawer'],
+    queryFn: () => listModalitiesOptions(),
+    enabled: open && showModalityFilter,
+  });
+  const modalityOptions = modalitiesRes?.data ?? [];
 
   useEffect(() => {
     if (!open) return;
@@ -343,6 +358,9 @@ export function PersonsFiltersDrawer({
       guardianPersonName: showGuardianFilter
         ? (guardian?.full_name ?? '')
         : committed.guardianPersonName,
+      modalityIds: showModalityFilter
+        ? [...modalityIds].sort((a, b) => a - b)
+        : committed.modalityIds,
       createdFrom: c.from,
       createdTo: c.to,
       updatedFrom: u.from,
@@ -352,12 +370,15 @@ export function PersonsFiltersDrawer({
   }, [
     committed.guardianPersonId,
     committed.guardianPersonName,
+    committed.modalityIds,
     created,
     email,
     guardian,
+    modalityIds,
     onApply,
     onOpenChange,
     showGuardianFilter,
+    showModalityFilter,
     status,
     updated,
   ]);
@@ -366,6 +387,7 @@ export function PersonsFiltersDrawer({
     setEmail('');
     setStatus('');
     setGuardian(null);
+    setModalityIds([]);
     setCreated(undefined);
     setUpdated(undefined);
     onApply({
@@ -373,6 +395,7 @@ export function PersonsFiltersDrawer({
       status: '',
       guardianPersonId: '',
       guardianPersonName: '',
+      modalityIds: [],
       createdFrom: '',
       createdTo: '',
       updatedFrom: '',
@@ -472,6 +495,14 @@ export function PersonsFiltersDrawer({
                 />
               </div>
             </div>
+          ) : null}
+
+          {showModalityFilter ? (
+            <TeacherModalityPicker
+              options={modalityOptions}
+              value={modalityIds}
+              onChange={setModalityIds}
+            />
           ) : null}
 
           <DateRangePopoverField

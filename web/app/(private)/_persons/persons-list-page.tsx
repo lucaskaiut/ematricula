@@ -12,10 +12,11 @@ import {
   useRef,
   useState,
 } from 'react';
+import type { ReactNode } from 'react';
 import { URL_ENCODED_STATE_KEY } from '@/lib/url-state';
 import type { PersonAttributes, PersonProfile } from '@/types/api';
 import { DataGrid } from '@/components/DataGrid';
-import { deletePerson, listPersons, personsQueryKey } from './actions';
+import { deletePerson, listModalitiesOptions, listPersons, personsQueryKey } from './actions';
 import { PersonsFilterBadges } from './persons-filter-badges';
 import { PersonsFiltersDrawer } from './persons-filters-drawer';
 import {
@@ -59,6 +60,7 @@ export type PersonsListPageProps = {
   newHref: string;
   searchPlaceholder: string;
   enableGuardianFilter?: boolean;
+  enableModalityFilter?: boolean;
 };
 
 export function PersonsListPage({
@@ -68,6 +70,7 @@ export function PersonsListPage({
   newHref,
   searchPlaceholder,
   enableGuardianFilter = false,
+  enableModalityFilter = false,
 }: PersonsListPageProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -88,6 +91,7 @@ export function PersonsListPage({
       status: personsState.status,
       guardianPersonId: personsState.guardianPersonId,
       guardianPersonName: personsState.guardianPersonName,
+      modalityIds: personsState.modalityIds,
       createdFrom: personsState.createdFrom,
       createdTo: personsState.createdTo,
       updatedFrom: personsState.updatedFrom,
@@ -98,12 +102,27 @@ export function PersonsListPage({
       personsState.status,
       personsState.guardianPersonId,
       personsState.guardianPersonName,
+      personsState.modalityIds,
       personsState.createdFrom,
       personsState.createdTo,
       personsState.updatedFrom,
       personsState.updatedTo,
     ],
   );
+
+  const { data: modalitiesLookupRes } = useQuery({
+    queryKey: ['modalities', 'list-lookup'],
+    queryFn: () => listModalitiesOptions(),
+    enabled: enableModalityFilter,
+  });
+
+  const modalityLookup = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const m of modalitiesLookupRes?.data ?? []) {
+      map.set(m.id, m.name);
+    }
+    return map;
+  }, [modalitiesLookupRes?.data]);
 
   useEffect(() => {
     if (searchParams.get(URL_ENCODED_STATE_KEY)) return;
@@ -136,6 +155,8 @@ export function PersonsListPage({
       status: personsState.status,
       guardianPersonId:
         profile === 'student' ? personsState.guardianPersonId : '',
+      modalityIds:
+        profile === 'teacher' ? [...personsState.modalityIds].sort((a, b) => a - b) : [],
       createdFrom: personsState.createdFrom,
       createdTo: personsState.createdTo,
       updatedFrom: personsState.updatedFrom,
@@ -149,8 +170,15 @@ export function PersonsListPage({
     placeholderData: (prev) => prev,
   });
 
-  const columns = useMemo(
-    () => [
+  const columns = useMemo(() => {
+    const base: Array<{
+      key: string;
+      title: string;
+      priority: number;
+      sortable: boolean;
+      width: number;
+      format?: (value: unknown, row: PersonAttributes) => ReactNode;
+    }> = [
       { key: 'id', title: '#', priority: 0, sortable: true, width: 60 },
       {
         key: 'full_name',
@@ -190,17 +218,31 @@ export function PersonsListPage({
           typeof value === 'string' ? statusLabel(value) : '—',
         width: 100,
       },
-      {
-        key: 'created_at',
-        title: 'Criado em',
+    ];
+    if (profile === 'teacher') {
+      base.push({
+        key: 'modalities',
+        title: 'Modalidades',
         priority: 6,
-        sortable: true,
-        format: (value: unknown) => formatDateTime(value),
-        width: 160,
-      },
-    ],
-    [],
-  );
+        sortable: false,
+        width: 220,
+        format: (_v, row) => {
+          const mod = row.modalities;
+          if (!Array.isArray(mod) || mod.length === 0) return '—';
+          return mod.map((m) => m.name).join(', ');
+        },
+      });
+    }
+    base.push({
+      key: 'created_at',
+      title: 'Criado em',
+      priority: 7,
+      sortable: true,
+      format: (value: unknown) => formatDateTime(value),
+      width: 160,
+    });
+    return base;
+  }, [profile]);
 
   const personsStateRef = useRef(personsState);
   useLayoutEffect(() => {
@@ -243,6 +285,7 @@ export function PersonsListPage({
         | 'status'
         | 'guardianPersonId'
         | 'guardianPersonName'
+        | 'modalityIds'
         | 'createdFrom'
         | 'createdTo'
         | 'updatedFrom'
@@ -335,6 +378,7 @@ export function PersonsListPage({
         open={filtersOpen}
         onOpenChange={setFiltersOpen}
         showGuardianFilter={enableGuardianFilter && profile === 'student'}
+        showModalityFilter={enableModalityFilter && profile === 'teacher'}
         committed={filtersCommitted}
         onApply={handleApplyDrawerFilters}
       />
@@ -354,6 +398,7 @@ export function PersonsListPage({
             />
             <PersonsFilterBadges
               state={personsState}
+              modalityLookup={enableModalityFilter ? modalityLookup : undefined}
               onClearFullName={() =>
                 replaceListState({
                   ...personsStateRef.current,
@@ -382,6 +427,16 @@ export function PersonsListPage({
                   guardianPersonName: '',
                   page: 1,
                 })
+              }
+              onClearModalities={
+                enableModalityFilter && profile === 'teacher'
+                  ? () =>
+                      replaceListState({
+                        ...personsStateRef.current,
+                        modalityIds: [],
+                        page: 1,
+                      })
+                  : undefined
               }
               onClearCreatedRange={() =>
                 replaceListState({

@@ -56,6 +56,13 @@ class PersonResource extends JsonResource
                     ]
                     : null,
             ),
+            'modalities' => $this->whenLoaded(
+                'modalities',
+                fn () => $this->modalities->map(fn ($m) => [
+                    'id' => $m->id,
+                    'name' => $m->name,
+                ])->values()->all(),
+            ),
         ];
     }
 }

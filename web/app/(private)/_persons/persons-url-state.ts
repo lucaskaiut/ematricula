@@ -7,7 +7,7 @@ import {
 import type { PersonProfile } from '@/types/api';
 
 export type PersonsListUrlState = {
-  v: 3;
+  v: 4;
   page: number;
   sort: Array<{ key: string; direction: 'asc' | 'desc' }>;
   fullName: string;
@@ -15,6 +15,7 @@ export type PersonsListUrlState = {
   status: '' | 'active' | 'inactive';
   guardianPersonId: string;
   guardianPersonName: string;
+  modalityIds: number[];
   createdFrom: string;
   createdTo: string;
   updatedFrom: string;
@@ -91,9 +92,39 @@ function getGuardianPersonIdFromParams(searchParams: URLSearchParams): string {
   return /^\d+$/.test(raw) ? raw : '';
 }
 
+function normalizeModalityIdsList(raw: unknown): number[] {
+  if (!Array.isArray(raw)) return [];
+  const ids = new Set<number>();
+  for (const item of raw) {
+    const n = typeof item === 'number' ? item : Number(item);
+    if (Number.isFinite(n) && n > 0) ids.add(Math.trunc(n));
+  }
+  return [...ids].sort((a, b) => a - b);
+}
+
+function getModalityIdsFromSearchParams(searchParams: URLSearchParams): number[] {
+  const ids = new Set<number>();
+  const bracketRe = /^filters\[modality_ids]\[(\d+)]$/;
+  for (const key of searchParams.keys()) {
+    if (key === 'filters[modality_ids][]') {
+      for (const v of searchParams.getAll(key)) {
+        const n = Number(v);
+        if (Number.isFinite(n) && n > 0) ids.add(Math.trunc(n));
+      }
+      continue;
+    }
+    const m = bracketRe.exec(key);
+    if (m) {
+      const n = Number(searchParams.get(key));
+      if (Number.isFinite(n) && n > 0) ids.add(Math.trunc(n));
+    }
+  }
+  return [...ids].sort((a, b) => a - b);
+}
+
 export function defaultPersonsListUrlState(): PersonsListUrlState {
   return {
-    v: 3,
+    v: 4,
     page: 1,
     sort: [],
     fullName: '',
@@ -101,6 +132,7 @@ export function defaultPersonsListUrlState(): PersonsListUrlState {
     status: '',
     guardianPersonId: '',
     guardianPersonName: '',
+    modalityIds: [],
     createdFrom: '',
     createdTo: '',
     updatedFrom: '',
@@ -129,7 +161,7 @@ export function normalizePersonsListUrlState(input: PersonsListUrlState): Person
         ? input.guardianPersonName
         : '';
   return {
-    v: 3,
+    v: 4,
     page: Math.max(1, Math.trunc(Number(input.page)) || 1),
     sort,
     fullName: typeof input.fullName === 'string' ? input.fullName : '',
@@ -137,6 +169,7 @@ export function normalizePersonsListUrlState(input: PersonsListUrlState): Person
     status,
     guardianPersonId,
     guardianPersonName,
+    modalityIds: normalizeModalityIdsList(input.modalityIds),
     createdFrom: typeof input.createdFrom === 'string' ? input.createdFrom : '',
     createdTo: typeof input.createdTo === 'string' ? input.createdTo : '',
     updatedFrom: typeof input.updatedFrom === 'string' ? input.updatedFrom : '',
@@ -150,7 +183,7 @@ export function parseLegacyPersonsListUrlState(
   const created = getBetweenRangeFromParams(searchParams, 'created_at');
   const updated = getBetweenRangeFromParams(searchParams, 'updated_at');
   return normalizePersonsListUrlState({
-    v: 3,
+    v: 4,
     page: toPositiveInt(searchParams.get('page'), 1),
     sort: getSortFromSearchParams(searchParams),
     fullName: getLikeFilterDisplay(searchParams, 'full_name'),
@@ -158,6 +191,7 @@ export function parseLegacyPersonsListUrlState(
     status: getStatusFromParams(searchParams),
     guardianPersonId: getGuardianPersonIdFromParams(searchParams),
     guardianPersonName: '',
+    modalityIds: getModalityIdsFromSearchParams(searchParams),
     createdFrom: created.from,
     createdTo: created.to,
     updatedFrom: updated.from,
@@ -168,7 +202,7 @@ export function parseLegacyPersonsListUrlState(
 function isDecodedPersonsState(value: unknown): value is Record<string, unknown> {
   if (!value || typeof value !== 'object') return false;
   const o = value as Record<string, unknown>;
-  if (o.v !== 3) return false;
+  if (o.v !== 3 && o.v !== 4) return false;
   if (!Array.isArray(o.sort)) return false;
   if (typeof o.fullName !== 'string') return false;
   return true;
@@ -185,8 +219,10 @@ function decodedToPersonsListState(o: Record<string, unknown>): PersonsListUrlSt
       : typeof o.guardianPersonId === 'number' && Number.isFinite(o.guardianPersonId)
         ? String(Math.trunc(o.guardianPersonId))
         : '';
+  const modalityIds =
+    o.v === 4 ? normalizeModalityIdsList(o.modalityIds) : [];
   return normalizePersonsListUrlState({
-    v: 3,
+    v: 4,
     page: Number.isFinite(page) ? page : 1,
     sort: o.sort as PersonsListUrlState['sort'],
     fullName: o.fullName as string,
@@ -195,6 +231,7 @@ function decodedToPersonsListState(o: Record<string, unknown>): PersonsListUrlSt
     guardianPersonId: gid,
     guardianPersonName:
       typeof o.guardianPersonName === 'string' ? o.guardianPersonName : '',
+    modalityIds,
     createdFrom: typeof o.createdFrom === 'string' ? o.createdFrom : '',
     createdTo: typeof o.createdTo === 'string' ? o.createdTo : '',
     updatedFrom: typeof o.updatedFrom === 'string' ? o.updatedFrom : '',
@@ -231,6 +268,7 @@ export function encodePersonsListUrlState(state: PersonsListUrlState): string | 
     normalized.email.trim() === '' &&
     normalized.status === '' &&
     normalized.guardianPersonId === '' &&
+    normalized.modalityIds.length === 0 &&
     normalized.createdFrom === '' &&
     normalized.createdTo === '' &&
     normalized.updatedFrom === '' &&
@@ -284,6 +322,11 @@ export function personsListStateToApiParams(
   }
   if (profile === 'student' && normalized.guardianPersonId !== '') {
     p.set('filters[guardian_person_id]', normalized.guardianPersonId);
+  }
+  if (profile === 'teacher' && normalized.modalityIds.length > 0) {
+    normalized.modalityIds.forEach((id, i) => {
+      p.set(`filters[modality_ids][${i}]`, String(id));
+    });
   }
   if (normalized.createdFrom && normalized.createdTo) {
     p.set('filters[created_at][0]', 'between');

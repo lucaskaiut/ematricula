@@ -22,6 +22,7 @@ export default function NovoProfessorPage() {
         guardian_person_id: '',
         status: 'active',
         notes: '',
+        modality_ids: [],
       }}
     />
   );

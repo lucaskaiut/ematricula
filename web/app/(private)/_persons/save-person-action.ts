@@ -27,6 +27,7 @@ const fieldKeys: (keyof PersonFormValues)[] = [
   'guardian_person_id',
   'status',
   'notes',
+  'modality_ids',
 ];
 
 function flattenZodFieldErrors(
@@ -35,6 +36,10 @@ function flattenZodFieldErrors(
   const out: Partial<Record<keyof PersonFormValues, string>> = {};
   for (const issue of issues) {
     const key = issue.path[0];
+    if (key === 'modality_ids') {
+      if (!out.modality_ids) out.modality_ids = issue.message;
+      continue;
+    }
     if (typeof key === 'string' && fieldKeys.includes(key as keyof PersonFormValues)) {
       const k = key as keyof PersonFormValues;
       if (!out[k]) out[k] = issue.message;
@@ -56,9 +61,14 @@ function mapApiValidationToFields(
     guardian_person_id: 'guardian_person_id',
     status: 'status',
     notes: 'notes',
+    modality_ids: 'modality_ids',
   };
   const out: Partial<Record<keyof PersonFormValues, string>> = {};
   for (const [apiKey, messages] of Object.entries(errors)) {
+    if (apiKey === 'modality_ids' || apiKey.startsWith('modality_ids.')) {
+      if (messages?.[0]) out.modality_ids = messages[0];
+      continue;
+    }
     const formKey = map[apiKey];
     if (formKey && messages?.[0]) out[formKey] = messages[0];
   }
@@ -78,7 +88,7 @@ function buildPayload(
         ? null
         : Number(guardianRaw);
 
-  return {
+  const body: Record<string, unknown> = {
     full_name: data.full_name.trim(),
     birth_date: data.birth_date,
     cpf,
@@ -89,6 +99,12 @@ function buildPayload(
     notes: data.notes.trim() === '' ? null : data.notes.trim(),
     profile,
   };
+
+  if (profile === 'teacher') {
+    body.modality_ids = data.modality_ids;
+  }
+
+  return body;
 }
 
 export async function savePersonAction(input: {

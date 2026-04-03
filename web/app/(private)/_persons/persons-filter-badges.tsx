@@ -44,20 +44,24 @@ function Badge({
 
 export type PersonsFilterBadgesProps = {
   state: PersonsListUrlState;
+  modalityLookup?: ReadonlyMap<number, string>;
   onClearFullName: () => void;
   onClearEmail: () => void;
   onClearStatus: () => void;
   onClearGuardian: () => void;
+  onClearModalities?: () => void;
   onClearCreatedRange: () => void;
   onClearUpdatedRange: () => void;
 };
 
 export function PersonsFilterBadges({
   state,
+  modalityLookup,
   onClearFullName,
   onClearEmail,
   onClearStatus,
   onClearGuardian,
+  onClearModalities,
   onClearCreatedRange,
   onClearUpdatedRange,
 }: PersonsFilterBadgesProps) {
@@ -90,6 +94,19 @@ export function PersonsFilterBadges({
       key: 'guardian',
       label: name ? `Responsável: ${name}` : `Responsável: #${state.guardianPersonId}`,
       onRemove: onClearGuardian,
+    });
+  }
+  if (state.modalityIds.length > 0 && onClearModalities) {
+    const names = state.modalityIds.map(
+      (id) => modalityLookup?.get(id) ?? `#${id}`,
+    );
+    items.push({
+      key: 'modalities',
+      label:
+        names.length <= 2
+          ? `Modalidades: ${names.join(' e ')}`
+          : `Modalidades: ${names.slice(0, 2).join(', ')} +${names.length - 2}`,
+      onRemove: onClearModalities,
     });
   }
   if (state.createdFrom && state.createdTo) {

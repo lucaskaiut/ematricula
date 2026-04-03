@@ -75,6 +75,11 @@ export type ModalityAttributes = {
   updater?: ModalityUserRef | null;
 };
 
+export type PersonModalityRef = {
+  id: number;
+  name: string;
+};
+
 export type PersonAttributes = {
   id: number;
   company_id: number;
@@ -94,4 +99,5 @@ export type PersonAttributes = {
   guardian?: PersonSummary | null;
   creator?: PersonUserRef | null;
   updater?: PersonUserRef | null;
+  modalities?: PersonModalityRef[];
 };
