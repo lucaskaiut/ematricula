@@ -1,5 +1,6 @@
 <?php
 
+use App\Modules\ClassGroup\Http\Controllers\ClassGroupController;
 use App\Modules\Company\Http\Middlewares\InitializeCompany;
 use App\Modules\Modality\Http\Controllers\ModalityController;
 use App\Modules\Person\Http\Controllers\PersonController;
@@ -15,6 +16,14 @@ Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function ()
         Route::put('/{id}', [ModalityController::class, 'update']);
         Route::patch('/{id}', [ModalityController::class, 'update']);
         Route::delete('/{id}', [ModalityController::class, 'destroy']);
+    });
+    Route::group(['prefix' => 'class-groups'], function () {
+        Route::get('/', [ClassGroupController::class, 'index']);
+        Route::get('/{id}', [ClassGroupController::class, 'show']);
+        Route::post('/', [ClassGroupController::class, 'store']);
+        Route::put('/{id}', [ClassGroupController::class, 'update']);
+        Route::patch('/{id}', [ClassGroupController::class, 'update']);
+        Route::delete('/{id}', [ClassGroupController::class, 'destroy']);
     });
     Route::group(['prefix' => 'persons'], function () {
         Route::get('/', [PersonController::class, 'index']);

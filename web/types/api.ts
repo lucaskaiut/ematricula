@@ -80,6 +80,31 @@ export type PersonModalityRef = {
   name: string;
 };
 
+export type ClassGroupModalityRef = {
+  id: number;
+  name: string;
+};
+
+export type ClassGroupAttributes = {
+  id: number;
+  company_id: number;
+  name: string;
+  modality_id: number;
+  teacher_person_id: number;
+  max_capacity: number | null;
+  weekdays: string;
+  starts_at: string;
+  ends_at: string;
+  created_by: number | null;
+  updated_by: number | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+  modality?: ClassGroupModalityRef | null;
+  teacher?: PersonSummary | null;
+  creator?: PersonUserRef | null;
+  updater?: PersonUserRef | null;
+};
+
 export type PersonAttributes = {
   id: number;
   company_id: number;

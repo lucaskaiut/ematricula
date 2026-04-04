@@ -2,14 +2,8 @@
 
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useSyncExternalStore } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/cn";
-
-const emptySubscribe = () => () => {};
-
-function useHydrated() {
-  return useSyncExternalStore(emptySubscribe, () => true, () => false);
-}
 
 type ThemeToggleProps = {
   className?: string;
@@ -17,7 +11,11 @@ type ThemeToggleProps = {
 
 export function ThemeToggle({ className }: ThemeToggleProps) {
   const { resolvedTheme, setTheme } = useTheme();
-  const hydrated = useHydrated();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const toggle = () => {
     setTheme(resolvedTheme === "dark" ? "light" : "dark");
@@ -27,16 +25,22 @@ export function ThemeToggle({ className }: ThemeToggleProps) {
     <button
       type="button"
       onClick={toggle}
-      disabled={!hydrated}
+      disabled={!mounted}
       className={cn(
         "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-control border border-border bg-card text-foreground shadow-input transition-colors hover:bg-accent",
         "focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/35",
         "disabled:pointer-events-none disabled:opacity-60",
         className,
       )}
-      aria-label={resolvedTheme === "dark" ? "Ativar tema claro" : "Ativar tema escuro"}
+      aria-label={
+        mounted
+          ? resolvedTheme === "dark"
+            ? "Ativar tema claro"
+            : "Ativar tema escuro"
+          : "Alternar tema claro ou escuro"
+      }
     >
-      {!hydrated ? (
+      {!mounted ? (
         <span className="h-4 w-4" aria-hidden />
       ) : resolvedTheme === "dark" ? (
         <Sun className="h-4 w-4" aria-hidden />
