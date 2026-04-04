@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Manrope } from "next/font/google";
 import { QueryProvider } from "@/providers/query-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -24,9 +25,15 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt" className={`${inter.variable} ${manrope.variable} h-full`}>
+    <html
+      lang="pt"
+      className={`${inter.variable} ${manrope.variable} h-full`}
+      suppressHydrationWarning
+    >
       <body className="min-h-full font-sans antialiased">
-        <QueryProvider>{children}</QueryProvider>
+        <ThemeProvider>
+          <QueryProvider>{children}</QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

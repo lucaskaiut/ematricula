@@ -7,16 +7,17 @@ import {
   useSidebar,
 } from "@/components/sidebar/sidebar-provider";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function ShellInner({ children }: { children: React.ReactNode }) {
   const { isOpen, toggle } = useSidebar();
 
   return (
-    <div className="min-h-dvh bg-ematricula-page-bg">
+    <div className="min-h-dvh bg-background">
       <div className="flex min-h-dvh">
         <div
           className={cn(
-            "hidden overflow-hidden bg-ematricula-surface transition-[width] duration-300 ease-out lg:block",
+            "hidden overflow-hidden bg-card transition-[width] duration-300 ease-out lg:block",
             isOpen ? "w-[280px]" : "w-0",
           )}
           aria-hidden={!isOpen}
@@ -25,12 +26,12 @@ function ShellInner({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex min-h-0 min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 shrink-0 border-b border-ematricula-border-input bg-ematricula-nav-surface backdrop-blur-md">
+          <header className="sticky top-0 z-30 shrink-0 border-b border-border bg-nav-surface backdrop-blur-md">
             <div className="flex h-14 items-center gap-3 px-4 justify-between">
               <button
                 type="button"
                 className={cn(
-                  "inline-flex h-9 w-9 items-center justify-center rounded-ematricula-control bg-ematricula-surface text-ematricula-text-primary shadow-ematricula-input transition-transform duration-200",
+                  "inline-flex h-9 w-9 items-center justify-center rounded-control bg-card text-foreground shadow-input transition-transform duration-200",
                   isOpen && "scale-[0.98]",
                 )}
                 onClick={toggle}
@@ -39,6 +40,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
                 <Menu className="h-4 w-4" />
               </button>
               <div className="flex items-center gap-2">
+                <ThemeToggle />
               </div>
             </div>
           </header>

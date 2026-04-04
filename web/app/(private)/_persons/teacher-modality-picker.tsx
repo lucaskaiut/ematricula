@@ -42,8 +42,8 @@ export function TeacherModalityPicker({
   return (
     <div className={cn('space-y-3', disabled && 'pointer-events-none opacity-60')}>
       <div>
-        <p className="text-sm font-medium text-ematricula-text-secondary">Modalidades</p>
-        <p className="mt-0.5 text-xs text-ematricula-text-muted">
+        <p className="text-sm font-medium text-secondary">Modalidades</p>
+        <p className="mt-0.5 text-xs text-muted">
           Selecione uma ou mais. A busca filtra a lista abaixo.
         </p>
       </div>
@@ -54,12 +54,12 @@ export function TeacherModalityPicker({
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Buscar…"
         autoComplete="off"
-        className="w-full min-h-10 border-0 border-b border-slate-200 bg-transparent px-0 py-2 text-sm text-ematricula-text-primary outline-none transition-colors placeholder:text-ematricula-text-placeholder focus:border-slate-400"
+        className="w-full min-h-10 border-0 border-b border-border bg-transparent px-0 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-placeholder focus:border-primary/50"
         aria-label="Filtrar modalidades"
       />
 
       {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm text-ematricula-text-muted">
+        <p className="py-6 text-center text-sm text-muted">
           {options.length === 0
             ? 'Nenhuma modalidade cadastrada.'
             : 'Nenhum resultado.'}
@@ -83,8 +83,8 @@ export function TeacherModalityPicker({
                   className={cn(
                     'max-w-full rounded-md px-3 py-1.5 text-left text-sm transition-colors',
                     isOn
-                      ? 'bg-slate-900 font-medium text-white'
-                      : 'text-ematricula-text-primary hover:bg-slate-100',
+                      ? 'bg-primary font-medium text-primary-foreground'
+                      : 'text-foreground hover:bg-accent',
                   )}
                 >
                   <span className="block truncate">{m.name}</span>

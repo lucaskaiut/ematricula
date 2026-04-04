@@ -87,12 +87,12 @@ function nextRangeFromDayClick(
 }
 
 const triggerClass =
-  'flex w-full min-h-11 cursor-pointer items-center gap-2 rounded-(--ematricula-radius-control) border border-ematricula-border-input bg-white px-3.5 py-2 text-left text-sm outline-none transition-[box-shadow,border-color] focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25';
+  'flex w-full min-h-11 cursor-pointer items-center gap-2 rounded-control border border-border bg-card px-3.5 py-2 text-left text-sm outline-none transition-[box-shadow,border-color] focus:border-primary/55 focus:ring-2 focus:ring-primary/25';
 
-const labelClass = 'text-sm font-medium text-ematricula-text-secondary';
+const labelClass = 'text-sm font-medium text-secondary';
 
 const emailInputClass =
-  'mt-1.5 w-full min-h-11 rounded-(--ematricula-radius-control) border border-ematricula-border-input bg-white px-3.5 py-2 text-sm text-ematricula-text-primary outline-none focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25';
+  'mt-1.5 w-full min-h-11 rounded-control border border-border bg-card px-3.5 py-2 text-sm text-foreground outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/25';
 
 type DateRangePopoverFieldProps = {
   fieldId: string;
@@ -200,7 +200,7 @@ function DateRangePopoverField({
               left: coords.left,
               zIndex: 100,
             }}
-            className="modalities-filters-daypicker w-max max-w-[calc(100vw-1rem)] rounded-xl border border-slate-200 bg-white p-4 shadow-2xl [--rdp-accent-color:#2563eb] [--rdp-background-color:#dbeafe]"
+            className="modalities-filters-daypicker w-max max-w-[calc(100vw-1rem)] rounded-xl border border-border bg-card p-4 shadow-2xl [--rdp-accent-color:var(--primary)] [--rdp-background-color:var(--accent-soft)]"
           >
             <DayPicker
               mode="range"
@@ -219,7 +219,7 @@ function DateRangePopoverField({
       <p id={labelId} className={labelClass}>
         {label}
       </p>
-      <p className="mt-0.5 text-xs text-ematricula-text-muted">{hint}</p>
+      <p className="mt-0.5 text-xs text-muted">{hint}</p>
       <div ref={anchorRef} className="mt-2">
         <button
           type="button"
@@ -231,14 +231,14 @@ function DateRangePopoverField({
           className={triggerClass}
         >
           <CalendarRange
-            className="h-4 w-4 shrink-0 text-ematricula-text-muted"
+            className="h-4 w-4 shrink-0 text-muted"
             aria-hidden
           />
           <span
             className={
               display
-                ? 'text-ematricula-text-primary'
-                : 'text-ematricula-text-placeholder'
+                ? 'text-foreground'
+                : 'text-placeholder'
             }
           >
             {display || placeholder}
@@ -318,7 +318,7 @@ export function ModalitiesFiltersDrawer({
     <div className="fixed inset-0 z-50" role="presentation">
       <button
         type="button"
-        className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-overlay backdrop-blur-[2px]"
         aria-label="Fechar filtros"
         onClick={() => onOpenChange(false)}
       />
@@ -326,17 +326,17 @@ export function ModalitiesFiltersDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-x-visible border-l border-slate-200 bg-ematricula-surface shadow-2xl"
+        className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-x-visible border-l border-border bg-card shadow-2xl"
       >
-        <div className="flex shrink-0 items-center justify-between border-b border-slate-200 px-4 py-4">
+        <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-4">
           <div className="flex items-center gap-2">
             <ListFilter
-              className="h-5 w-5 text-ematricula-text-muted"
+              className="h-5 w-5 text-muted"
               aria-hidden
             />
             <h2
               id={titleId}
-              className="text-lg font-semibold text-ematricula-text-primary"
+              className="text-lg font-semibold text-foreground"
             >
               Filtros
             </h2>
@@ -344,7 +344,7 @@ export function ModalitiesFiltersDrawer({
           <button
             type="button"
             onClick={() => onOpenChange(false)}
-            className="rounded-lg p-2 text-ematricula-text-muted hover:bg-slate-100 hover:text-ematricula-text-primary"
+            className="rounded-lg p-2 text-muted hover:bg-accent hover:text-foreground"
             aria-label="Fechar"
           >
             <X className="h-5 w-5" />
@@ -386,18 +386,18 @@ export function ModalitiesFiltersDrawer({
           />
         </div>
 
-        <div className="flex shrink-0 flex-col gap-2 border-t border-slate-200 bg-white/90 px-4 py-4 backdrop-blur-sm">
+        <div className="flex shrink-0 flex-col gap-2 border-t border-border bg-card/90 px-4 py-4 backdrop-blur-sm">
           <button
             type="button"
             onClick={handleApply}
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-(--ematricula-radius-control) bg-linear-to-br from-(--ematricula-cta-gradient-from) to-(--ematricula-cta-gradient-to) px-4 text-sm font-semibold text-white shadow-(--shadow-ematricula-cta) transition-opacity hover:opacity-95"
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-control bg-linear-to-br from-primary to-primary-end px-4 text-sm font-semibold text-primary-foreground shadow-cta transition-opacity hover:opacity-95"
           >
             Aplicar filtros
           </button>
           <button
             type="button"
             onClick={handleClearAll}
-            className="inline-flex min-h-10 w-full items-center justify-center rounded-(--ematricula-radius-control) text-sm font-medium text-ematricula-text-secondary ring-1 ring-slate-200 transition-colors hover:bg-slate-50"
+            className="inline-flex min-h-10 w-full items-center justify-center rounded-control text-sm font-medium text-secondary ring-1 ring-border transition-colors hover:bg-accent"
           >
             Limpar tudo
           </button>

@@ -13,7 +13,7 @@ import {
 import { cn } from '@/lib/cn';
 
 const inputClass =
-  'border-ematricula-border-input text-ematricula-text-primary placeholder:text-ematricula-text-placeholder min-h-11 w-full min-w-0 rounded-(--ematricula-radius-control) border bg-white px-3.5 py-2 text-sm outline-none focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25';
+  'border-border text-foreground placeholder:text-placeholder min-h-11 w-full min-w-0 rounded-control border bg-card px-3.5 py-2 text-sm outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/25';
 
 export type SearchSelectProps<T> = {
   value: T | null;
@@ -248,7 +248,7 @@ export function SearchSelect<T>({
           <button
             type="button"
             onClick={handleClear}
-            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-(--ematricula-radius-control) border border-ematricula-border-input bg-white px-2 text-ematricula-text-muted transition-colors hover:bg-slate-50 hover:text-ematricula-text-primary"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-control border border-border bg-card px-2 text-muted transition-colors hover:bg-accent hover:text-foreground"
             aria-label="Limpar seleção"
           >
             <X className="h-4 w-4" aria-hidden />
@@ -259,21 +259,21 @@ export function SearchSelect<T>({
         <div
           id={listboxId}
           role="listbox"
-          className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-(--ematricula-radius-control) border border-slate-200 bg-white py-1 shadow-lg"
+          className="absolute left-0 right-0 z-50 mt-1 max-h-60 overflow-y-auto rounded-control border border-border bg-card py-1 shadow-lg"
         >
           {loading ? (
-            <div className="flex items-center gap-2 px-3.5 py-2.5 text-sm text-ematricula-text-muted">
+            <div className="flex items-center gap-2 px-3.5 py-2.5 text-sm text-muted">
               <Loader2 className="h-4 w-4 shrink-0 animate-spin" aria-hidden />
               Buscando…
             </div>
           ) : null}
           {!loading && showHint ? (
-            <div className="px-3.5 py-2.5 text-sm text-ematricula-text-muted">
+            <div className="px-3.5 py-2.5 text-sm text-muted">
               Digite para buscar
             </div>
           ) : null}
           {!loading && showEmpty ? (
-            <div className="px-3.5 py-2.5 text-sm text-ematricula-text-muted">
+            <div className="px-3.5 py-2.5 text-sm text-muted">
               Nenhum resultado encontrado
             </div>
           ) : null}
@@ -294,8 +294,8 @@ export function SearchSelect<T>({
                     onMouseEnter={() => setHighlightedIndex(index)}
                     onClick={() => selectItem(item)}
                     className={cn(
-                      'flex w-full cursor-pointer px-3.5 py-2 text-left text-sm text-ematricula-text-primary',
-                      active ? 'bg-slate-100' : 'hover:bg-slate-50',
+                      'flex w-full cursor-pointer px-3.5 py-2 text-left text-sm text-foreground',
+                      active ? 'bg-card-subtle' : 'hover:bg-accent',
                     )}
                   >
                     {label}

@@ -59,7 +59,7 @@ function PaginationInner({
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 text-sm">
-      <div className="text-ematricula-text-muted">
+      <div className="text-muted">
         {meta.total > 0 && meta.from !== null && meta.to !== null
           ? `Mostrando ${meta.from}–${meta.to} de ${meta.total}`
           : `Total: ${meta.total}`}
@@ -70,9 +70,9 @@ function PaginationInner({
           onClick={() => go(meta.current_page - 1)}
           disabled={!canPrev || disabled}
           className={cx(
-            'min-w-9 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-ematricula-text-primary shadow-sm',
+            'min-w-9 rounded-lg border border-border bg-card px-2.5 py-1.5 text-foreground shadow-sm',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'hover:bg-slate-50',
+            'hover:bg-accent',
           )}
           aria-label="Página anterior"
         >
@@ -82,7 +82,7 @@ function PaginationInner({
           t === 'ellipsis' ? (
             <span
               key={`e-${idx}`}
-              className="px-2 py-1.5 text-ematricula-text-muted"
+              className="px-2 py-1.5 text-muted"
               aria-hidden="true"
             >
               …
@@ -95,12 +95,12 @@ function PaginationInner({
               disabled={disabled}
               aria-current={t === meta.current_page ? 'page' : undefined}
               className={cx(
-                'min-w-9 rounded-lg border px-2.5 py-1.5 text-ematricula-text-primary shadow-sm transition-colors',
+                'min-w-9 rounded-lg border px-2.5 py-1.5 text-foreground shadow-sm transition-colors',
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 t === meta.current_page
-                  ? 'border-blue-600 bg-blue-600 text-white'
-                  : 'border-slate-200 bg-white hover:bg-slate-50',
-                'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
+                  ? 'border-primary bg-primary text-primary-foreground'
+                  : 'border-border bg-card hover:bg-accent',
+                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
               )}
             >
               {t}
@@ -112,9 +112,9 @@ function PaginationInner({
           onClick={() => go(meta.current_page + 1)}
           disabled={!canNext || disabled}
           className={cx(
-            'min-w-9 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-ematricula-text-primary shadow-sm',
+            'min-w-9 rounded-lg border border-border bg-card px-2.5 py-1.5 text-foreground shadow-sm',
             'disabled:cursor-not-allowed disabled:opacity-50',
-            'hover:bg-slate-50',
+            'hover:bg-accent',
           )}
           aria-label="Próxima página"
         >
@@ -134,7 +134,7 @@ export function DataGridPagination({
   return (
     <div
       className={cx(
-        'sticky bottom-0 z-20 w-full shrink-0 rounded-b-xl border-t border-slate-200 bg-white px-4 py-3',
+        'sticky bottom-0 z-20 w-full shrink-0 rounded-b-xl border-t border-border bg-card px-4 py-3',
         className,
       )}
     >

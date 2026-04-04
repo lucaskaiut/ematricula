@@ -86,10 +86,10 @@ function renderValue<T>(row: T, col: Column<T>) {
       : (row as T)[key];
   if (col.format) return col.format(value, row);
   if (value === null || value === undefined)
-    return <span className="text-ematricula-text-muted">—</span>;
+    return <span className="text-muted">—</span>;
   if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
   if (typeof value === 'string' || typeof value === 'number') return String(value);
-  return <span className="text-ematricula-text-muted">—</span>;
+  return <span className="text-muted">—</span>;
 }
 
 function Chevron({ open }: { open: boolean }) {
@@ -114,7 +114,7 @@ function Chevron({ open }: { open: boolean }) {
 
 function SortIcon({ direction, active }: { direction: 'asc' | 'desc'; active?: boolean }) {
   const base = 'h-3 w-3';
-  const color = active ? 'text-ematricula-text-primary' : 'text-ematricula-text-muted';
+  const color = active ? 'text-foreground' : 'text-muted';
   if (direction === 'asc') {
     return (
       <svg aria-hidden="true" viewBox="0 0 20 20" className={cx(base, color)} fill="currentColor">
@@ -132,7 +132,7 @@ function SortIcon({ direction, active }: { direction: 'asc' | 'desc'; active?: b
 function SkeletonCell({ align }: { align?: ColumnAlignment }) {
   return (
     <div className={cx('min-w-0', alignClass(align))}>
-      <div className="h-4 w-full animate-pulse rounded bg-slate-200/70" />
+      <div className="h-4 w-full animate-pulse rounded bg-skeleton" />
     </div>
   );
 }
@@ -289,9 +289,9 @@ export function DataGridTable<T>({
       ref={containerRef}
       className={cx('relative w-full shrink-0 overflow-hidden rounded-t-xl', className)}
     >
-      <div className="bg-white">
-        <div className="border-b border-slate-200 px-4 py-3">
-          <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-ematricula-text-muted">
+      <div className="bg-card">
+        <div className="border-b border-border px-4 py-3">
+          <div className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-muted">
             {canExpand ? <div className="w-8 shrink-0" /> : null}
             {hasRowActions ? <div className="w-10 shrink-0" /> : null}
             {headerColumns.map((col, idx) => (
@@ -310,8 +310,8 @@ export function DataGridTable<T>({
                     onClick={() => toggleSort(col)}
                     className={cx(
                       'group inline-flex max-w-full items-center gap-2 truncate rounded-md',
-                      'hover:text-ematricula-text-primary',
-                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
+                      'hover:text-foreground',
+                      'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                     )}
                   >
                     <span className="truncate">{col.title}</span>
@@ -338,7 +338,7 @@ export function DataGridTable<T>({
           className={cx('relative', showOverlay ? 'pointer-events-none select-none' : undefined)}
         >
           {firstLoad ? (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-border">
               {Array.from({ length: 6 }).map((_, i) => (
                 <div key={i} className="px-1 py-1">
                   <SkeletonRow cols={headerColumns} />
@@ -346,11 +346,11 @@ export function DataGridTable<T>({
               ))}
             </div>
           ) : !hasData ? (
-            <div className="px-6 py-10 text-center text-sm text-ematricula-text-muted">
+            <div className="px-6 py-10 text-center text-sm text-muted">
               {emptyState ?? 'Nenhum resultado encontrado.'}
             </div>
           ) : (
-            <div className="divide-y divide-slate-100">
+            <div className="divide-y divide-border">
               {data.map((row, index) => {
                 const rowKey = stableRowKey(row, index, getRowId);
                 const rowKeyStr = String(rowKey);
@@ -377,15 +377,15 @@ export function DataGridTable<T>({
                         'w-full text-left',
                         'px-4 py-3',
                         'transition-colors',
-                        rowHasHidden ? 'cursor-pointer hover:bg-slate-50' : 'cursor-default',
+                        rowHasHidden ? 'cursor-pointer hover:bg-accent' : 'cursor-default',
                         rowHasHidden
-                          ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40'
+                          ? 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40'
                           : undefined,
                       )}
                     >
                       <div className="flex items-center gap-3">
                         {rowHasHidden ? (
-                          <div className="w-8 shrink-0 text-ematricula-text-muted">
+                          <div className="w-8 shrink-0 text-muted">
                             <Chevron open={open} />
                           </div>
                         ) : null}
@@ -403,8 +403,8 @@ export function DataGridTable<T>({
                               }}
                               className={cx(
                                 'inline-flex h-9 w-9 items-center justify-center rounded-lg',
-                                'text-ematricula-text-muted hover:bg-slate-100 hover:text-ematricula-text-primary',
-                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
+                                'text-muted hover:bg-accent hover:text-foreground',
+                                'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40',
                               )}
                             >
                               <span className="sr-only">Ações</span>
@@ -423,7 +423,7 @@ export function DataGridTable<T>({
                                 role="menu"
                                 aria-label="Ações da linha"
                                 className={cx(
-                                  'absolute left-0 top-10 z-30 min-w-44 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-lg',
+                                  'absolute left-0 top-10 z-30 min-w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg',
                                 )}
                               >
                                 {onEdit ? (
@@ -436,8 +436,8 @@ export function DataGridTable<T>({
                                       onActionEdit(row);
                                     }}
                                     className={cx(
-                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-ematricula-text-primary',
-                                      'hover:bg-slate-50',
+                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground',
+                                      'hover:bg-accent',
                                     )}
                                   >
                                     Editar
@@ -453,8 +453,8 @@ export function DataGridTable<T>({
                                       onActionDelete(row);
                                     }}
                                     className={cx(
-                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600',
-                                      'hover:bg-slate-50',
+                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400',
+                                      'hover:bg-red-500/10 dark:hover:bg-red-500/20',
                                     )}
                                   >
                                     Excluir
@@ -469,7 +469,7 @@ export function DataGridTable<T>({
                           <div
                             key={`${String(col.key)}-${idx}`}
                             className={cx(
-                              'min-w-0 whitespace-nowrap text-sm text-ematricula-text-primary',
+                              'min-w-0 whitespace-nowrap text-sm text-foreground',
                               alignClass(col.align),
                             )}
                             style={{
@@ -489,7 +489,7 @@ export function DataGridTable<T>({
                         className={cx(
                           'grid transition-[grid-template-rows] duration-200 ease-out',
                           open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
-                          'bg-slate-50/60',
+                          'bg-accent/60',
                         )}
                       >
                         <div className="overflow-hidden">
@@ -497,12 +497,12 @@ export function DataGridTable<T>({
                             <div className="grid gap-3 sm:grid-cols-2">
                               {hidden.map((col, idx) => (
                                 <div key={`${String(col.key)}-${idx}`} className="min-w-0">
-                                  <div className="text-xs font-semibold uppercase tracking-wide text-ematricula-text-muted">
+                                  <div className="text-xs font-semibold uppercase tracking-wide text-muted">
                                     {col.title}
                                   </div>
                                   <div
                                     className={cx(
-                                      'mt-1 text-sm text-ematricula-text-primary',
+                                      'mt-1 text-sm text-foreground',
                                       alignClass(col.align),
                                     )}
                                   >
@@ -523,9 +523,9 @@ export function DataGridTable<T>({
 
           {showOverlay ? (
             <div className="absolute inset-0 z-10">
-              <div className="absolute inset-0 bg-slate-900/10 backdrop-blur-[1px]" />
+              <div className="absolute inset-0 bg-foreground/10 backdrop-blur-[1px]" />
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="rounded-xl bg-white/80 px-4 py-2 text-sm text-ematricula-text-secondary shadow-sm">
+                <div className="rounded-xl bg-card/80 px-4 py-2 text-sm text-secondary shadow-sm">
                   Carregando…
                 </div>
               </div>

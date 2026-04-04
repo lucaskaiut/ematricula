@@ -35,10 +35,10 @@ export function Sidebar() {
               <Link
                 href={item.href}
                 className={cn(
-                  "group flex items-center gap-3 rounded-ematricula-control px-3 py-2 text-sm font-semibold transition-colors",
+                  "group flex items-center gap-3 rounded-control px-3 py-2 text-sm font-semibold transition-colors",
                   active
-                    ? "bg-ematricula-card-shell text-ematricula-text-primary border-r-4 border-ematricula-link"
-                    : "text-ematricula-text-secondary hover:bg-ematricula-input-muted-bg hover:text-ematricula-text-primary",
+                    ? "bg-card-subtle text-foreground border-r-4 border-primary"
+                    : "text-secondary hover:bg-card-subtle hover:text-foreground",
                 )}
                 aria-current={active ? "page" : undefined}
               >
@@ -46,8 +46,8 @@ export function Sidebar() {
                   className={cn(
                     "h-[18px] w-[18px] shrink-0",
                     active
-                      ? "text-ematricula-link"
-                      : "text-ematricula-text-muted group-hover:text-ematricula-link",
+                      ? "text-primary"
+                      : "text-muted group-hover:text-primary",
                   )}
                 />
                 <span className="min-w-0 truncate">{item.label}</span>
@@ -70,23 +70,23 @@ export function Sidebar() {
       />
       <aside
         className={cn(
-          "fixed left-0 top-0 z-50 h-dvh w-[280px] -translate-x-full border-r border-ematricula-border-input bg-ematricula-surface shadow-ematricula-nav transition-transform duration-300 ease-out lg:hidden",
+          "fixed left-0 top-0 z-50 h-dvh w-[280px] -translate-x-full border-r border-border bg-card shadow-nav transition-transform duration-300 ease-out lg:hidden",
           isOpen && "translate-x-0",
         )}
         aria-hidden={!isOpen}
       >
         <div className="flex h-14 items-center justify-between gap-3 px-4">
           <div className="min-w-0">
-            <div className="truncate font-display text-sm font-extrabold text-ematricula-nav-title">
+            <div className="truncate font-display text-sm font-extrabold text-primary">
               eMatrícula
             </div>
-            <div className="truncate text-xs font-medium text-ematricula-text-muted">
+            <div className="truncate text-xs font-medium text-muted">
               {user?.name}
             </div>
           </div>
           <button
             type="button"
-            className="inline-flex h-9 w-9 items-center justify-center rounded-ematricula-control bg-ematricula-input-muted-bg text-ematricula-text-primary shadow-ematricula-input"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-control bg-card-subtle text-foreground shadow-input"
             onClick={close}
             aria-label="Fechar menu"
           >
@@ -96,17 +96,17 @@ export function Sidebar() {
         {nav}
       </aside>
 
-      <aside className="hidden h-dvh w-full flex-col border-r border-ematricula-border-input bg-ematricula-surface lg:flex">
+      <aside className="hidden h-dvh w-full flex-col border-r border-border bg-card lg:flex">
         <div className="flex h-14 items-center justify-between gap-3 px-4">
           <div className="min-w-0">
-            <div className="truncate font-display text-sm font-extrabold text-ematricula-nav-title">
+            <div className="truncate font-display text-sm font-extrabold text-primary">
               eMatrícula
             </div>
-            <div className="truncate text-xs font-medium text-ematricula-text-muted">
+            <div className="truncate text-xs font-medium text-muted">
               {user?.name}
             </div>
           </div>
-          <LogOut className="text-ematricula-text-muted cursor-pointer" onClick={logout}/>
+          <LogOut className="text-muted cursor-pointer" onClick={logout}/>
         </div>
         {nav}
       </aside>

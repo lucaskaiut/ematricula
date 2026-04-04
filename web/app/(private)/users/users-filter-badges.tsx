@@ -28,12 +28,12 @@ function Badge({
   onRemove: () => void;
 }) {
   return (
-    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-ematricula-text-primary shadow-sm">
+    <span className="inline-flex max-w-full items-center gap-1 rounded-full border border-border bg-card px-2.5 py-1 text-xs font-medium text-foreground shadow-sm">
       <span className="truncate">{label}</span>
       <button
         type="button"
         onClick={onRemove}
-        className="shrink-0 rounded-full p-0.5 text-ematricula-text-muted transition-colors hover:bg-slate-100 hover:text-ematricula-text-primary"
+        className="shrink-0 rounded-full p-0.5 text-muted transition-colors hover:bg-accent hover:text-foreground"
         aria-label="Remover filtro"
       >
         <X className="h-3.5 w-3.5" aria-hidden />

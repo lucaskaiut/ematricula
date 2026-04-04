@@ -8,10 +8,10 @@ function cx(...parts: Array<string | undefined | null | false>) {
 }
 
 const pageFiltersSearchClassName =
-  'border-ematricula-border-input text-ematricula-text-primary placeholder:text-ematricula-text-placeholder min-h-11 w-full max-w-md min-w-[min(100%,12rem)] shrink-0 rounded-(--ematricula-radius-control) border bg-white px-3.5 py-2 text-sm outline-none focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25 sm:w-auto sm:min-w-56 sm:flex-1';
+  'border-border text-foreground placeholder:text-placeholder min-h-11 w-full max-w-md min-w-[min(100%,12rem)] shrink-0 rounded-control border bg-card px-3.5 py-2 text-sm outline-none focus:border-primary/55 focus:ring-2 focus:ring-primary/25 sm:w-auto sm:min-w-56 sm:flex-1';
 
 const pageFiltersDrawerTriggerClassName =
-  'text-ematricula-text-primary inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-(--ematricula-radius-control) border border-slate-200 bg-white px-4 text-sm font-medium shadow-sm transition-colors hover:bg-slate-50 sm:min-h-10';
+  'text-foreground inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-control border border-border bg-card px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent sm:min-h-10';
 
 type PageRootProps = {
   children: ReactNode;
@@ -41,12 +41,12 @@ function PageHeader({ title, href, children, className }: PageHeaderProps) {
         className,
       )}
     >
-      <h1 className="text-ematricula-text-primary text-xl font-semibold tracking-tight sm:text-2xl">
+      <h1 className="text-foreground text-xl font-semibold tracking-tight sm:text-2xl">
         {title}
       </h1>
       <Link
         href={href}
-        className="inline-flex min-h-11 items-center justify-center rounded-(--ematricula-radius-control) bg-linear-to-br from-(--ematricula-cta-gradient-from) to-(--ematricula-cta-gradient-to) px-4 text-sm font-semibold text-white transition-opacity hover:opacity-95 sm:min-h-10"
+        className="inline-flex min-h-11 items-center justify-center rounded-control bg-linear-to-br from-primary to-primary-end px-4 text-sm font-semibold text-primary-foreground transition-opacity hover:opacity-95 sm:min-h-10"
       >
         {children}
       </Link>
@@ -63,7 +63,7 @@ function PageFilters({ children, className }: PageFiltersProps) {
   return (
     <div
       className={cx(
-        'bg-ematricula-surface flex w-full shrink-0 flex-col gap-3 p-2 sm:flex-row sm:items-center sm:justify-between sm:p-3',
+        'bg-card flex w-full shrink-0 flex-col gap-3 p-2 sm:flex-row sm:items-center sm:justify-between sm:p-3',
         className,
       )}
     >
@@ -119,7 +119,7 @@ function PageFiltersDrawerTrigger({
       onClick={onClick}
       className={cx(pageFiltersDrawerTriggerClassName, className)}
     >
-      <ListFilter className="text-ematricula-text-muted h-4 w-4" aria-hidden />
+      <ListFilter className="text-muted h-4 w-4" aria-hidden />
       {label}
     </button>
   );

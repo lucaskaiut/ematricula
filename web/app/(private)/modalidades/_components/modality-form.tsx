@@ -17,9 +17,9 @@ export type ModalityFormProps = {
 };
 
 const inputClass =
-  'mt-1.5 w-full min-h-11 rounded-[var(--ematricula-radius-control)] border border-[var(--ematricula-border-input)] bg-white px-3.5 py-2.5 text-sm text-ematricula-text-primary shadow-[var(--shadow-ematricula-input)] outline-none transition-[box-shadow,border-color] placeholder:text-ematricula-text-placeholder focus:border-blue-400/60 focus:ring-2 focus:ring-blue-500/25';
+  'mt-1.5 w-full min-h-11 rounded-control border border-border bg-card px-3.5 py-2.5 text-sm text-foreground shadow-input outline-none transition-[box-shadow,border-color] placeholder:text-placeholder focus:border-primary/55 focus:ring-2 focus:ring-primary/25';
 
-const labelClass = 'text-sm font-medium text-ematricula-text-secondary';
+const labelClass = 'text-sm font-medium text-secondary';
 
 const schema = modalityFormValuesSchema;
 
@@ -74,18 +74,18 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
     <div className="min-h-[calc(100dvh-8rem)] w-full min-w-0 px-4 py-6 sm:px-6 sm:py-10">
       <div className="w-full min-w-0">
         <header className="mb-6 sm:mb-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-ematricula-text-muted">
+          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-muted">
             Modalidades
           </p>
-          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-ematricula-text-primary sm:text-3xl">
+          <h1 className="mt-1 font-[family-name:var(--font-display)] text-2xl font-semibold tracking-tight text-foreground sm:text-3xl">
             {title}
           </h1>
-          <p className="mt-2 max-w-prose text-pretty text-sm leading-relaxed text-ematricula-text-secondary sm:max-w-none">
+          <p className="mt-2 max-w-prose text-pretty text-sm leading-relaxed text-secondary sm:max-w-none">
             {subtitle}
           </p>
         </header>
 
-        <div className="w-full min-w-0 rounded-[var(--ematricula-radius-card)] border border-slate-200/80 bg-ematricula-surface p-5 shadow-[var(--shadow-ematricula-card)] sm:p-8">
+        <div className="w-full min-w-0 rounded-card border border-border bg-card p-5 shadow-card sm:p-8">
           <form
             onSubmit={onSubmit}
             className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-x-8 lg:gap-y-6"
@@ -94,7 +94,7 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
             {form.formState.errors.root?.message ? (
               <div
                 role="alert"
-                className="rounded-[var(--ematricula-radius-control)] border border-red-200 bg-red-50/90 px-3.5 py-3 text-sm text-red-800 lg:col-span-2"
+                className="rounded-control border border-red-200 bg-red-50/90 px-3.5 py-3 text-sm text-red-800 dark:border-red-900/70 dark:bg-red-950/45 dark:text-red-200 lg:col-span-2"
               >
                 {form.formState.errors.root.message}
               </div>
@@ -113,7 +113,7 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
                 {...form.register('name')}
               />
               {form.formState.errors.name ? (
-                <p className="mt-1.5 text-sm text-red-600" role="alert">
+                <p className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
                   {form.formState.errors.name.message}
                 </p>
               ) : null}
@@ -121,7 +121,7 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
 
             <div className="min-w-0 lg:col-span-2">
               <label htmlFor="modality-description" className={labelClass}>
-                Descrição <span className="font-normal text-ematricula-text-muted">(opcional)</span>
+                Descrição <span className="font-normal text-muted">(opcional)</span>
               </label>
               <textarea
                 id="modality-description"
@@ -130,7 +130,7 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
                 {...form.register('description')}
               />
               {form.formState.errors.description ? (
-                <p className="mt-1.5 text-sm text-red-600" role="alert">
+                <p className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
                   {form.formState.errors.description.message}
                 </p>
               ) : null}
@@ -139,14 +139,14 @@ export function ModalityForm({ mode, modalityId, defaultValues }: ModalityFormPr
             <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row sm:items-center sm:justify-end lg:col-span-2">
               <Link
                 href="/modalidades"
-                className="inline-flex min-h-11 items-center justify-center rounded-[var(--ematricula-radius-control)] px-4 text-sm font-medium text-ematricula-text-secondary ring-1 ring-slate-200/90 transition-colors hover:bg-slate-50"
+                className="inline-flex min-h-11 items-center justify-center rounded-control px-4 text-sm font-medium text-secondary ring-1 ring-border transition-colors hover:bg-accent"
               >
                 Cancelar
               </Link>
               <button
                 type="submit"
                 disabled={pending}
-                className="inline-flex min-h-11 items-center justify-center rounded-[var(--ematricula-radius-control)] bg-gradient-to-br from-[var(--ematricula-cta-gradient-from)] to-[var(--ematricula-cta-gradient-to)] px-5 text-sm font-semibold text-white shadow-[var(--shadow-ematricula-cta)] transition-[transform,opacity] hover:opacity-95 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
+                className="inline-flex min-h-11 items-center justify-center rounded-control bg-gradient-to-br from-primary to-primary-end px-5 text-sm font-semibold text-primary-foreground shadow-cta transition-[transform,opacity] hover:opacity-95 active:scale-[0.99] disabled:pointer-events-none disabled:opacity-60"
               >
                 {pending ? 'Salvando…' : 'Salvar'}
               </button>

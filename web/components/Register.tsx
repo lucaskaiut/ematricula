@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Bounce, ToastContainer, toast } from "react-toastify";
+import { ThemeToggle } from "@/components/theme-toggle";
 import type { RegisterRequestBody } from "@/types/api";
 import { RegisterRequest, RegisterResponse } from "@/actions/auth";
 
@@ -43,17 +44,18 @@ export function Register({
   }
 
   return (
-    <main className="flex min-h-dvh w-full justify-center bg-ematricula-page-bg px-4 pb-8 pt-16 sm:px-6 sm:pb-12 sm:pt-24 md:pb-[54px] md:pt-[102px]">
+    <main className="relative flex min-h-dvh w-full justify-center bg-background px-4 pb-8 pt-16 sm:px-6 sm:pb-12 sm:pt-24 md:pb-[54px] md:pt-[102px]">
+      <ThemeToggle className="absolute right-4 top-4 z-50 sm:right-6 sm:top-6" />
       <section
-        className="flex w-full min-w-0 max-w-[560px] overflow-hidden rounded-ematricula-card bg-ematricula-card-shell shadow-ematricula-card"
+        className="flex w-full min-w-0 max-w-[560px] overflow-hidden rounded-card bg-card-subtle shadow-card"
         aria-label="Tela de cadastro"
       >
-        <div className="flex w-full min-w-0 flex-col justify-center bg-ematricula-surface p-5 sm:p-8 md:p-16">
+        <div className="flex w-full min-w-0 flex-col justify-center bg-card p-5 sm:p-8 md:p-16">
           <header className="pb-6 md:pb-10">
-            <h2 className="font-display text-[1.375rem] font-bold leading-7 text-ematricula-text-primary sm:text-2xl sm:leading-8">
+            <h2 className="font-display text-[1.375rem] font-bold leading-7 text-foreground sm:text-2xl sm:leading-8">
               Criar conta
             </h2>
-            <p className="mt-2 text-[14px] font-medium leading-5 text-ematricula-text-secondary">
+            <p className="mt-2 text-[14px] font-medium leading-5 text-secondary">
               Preencha os dados da empresa e do usuário responsável para
               começar.
             </p>
@@ -68,14 +70,14 @@ export function Register({
           >
             <div className="flex flex-col gap-6 sm:gap-8">
               <fieldset className="m-0 flex min-w-0 flex-col gap-4 border-0 p-0 sm:gap-6">
-                <legend className="mb-0 w-full min-w-0 border-b border-ematricula-border-input pb-2 text-[14px] font-bold leading-5 text-ematricula-text-primary">
+                <legend className="mb-0 w-full min-w-0 border-b border-border pb-2 text-[14px] font-bold leading-5 text-foreground">
                   Dados da empresa
                 </legend>
 
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-company-name"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     Nome da escola
                   </label>
@@ -91,7 +93,7 @@ export function Register({
                         company: { ...data.company, name: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="organization"
                   />
                 </div>
@@ -99,7 +101,7 @@ export function Register({
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-company-email"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     E-mail da escola
                   </label>
@@ -115,7 +117,7 @@ export function Register({
                         company: { ...data.company, email: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="organization-email"
                   />
                 </div>
@@ -123,7 +125,7 @@ export function Register({
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-company-phone"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     Telefone
                   </label>
@@ -139,21 +141,21 @@ export function Register({
                         company: { ...data.company, phone: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="tel"
                   />
                 </div>
               </fieldset>
 
               <fieldset className="m-0 flex min-w-0 flex-col gap-4 border-0 p-0 sm:gap-6">
-                <legend className="mb-0 w-full min-w-0 border-b border-ematricula-border-input pb-2 text-[14px] font-bold leading-5 text-ematricula-text-primary">
+                <legend className="mb-0 w-full min-w-0 border-b border-border pb-2 text-[14px] font-bold leading-5 text-foreground">
                   Dados do usuário
                 </legend>
 
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-user-name"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     Nome completo
                   </label>
@@ -169,7 +171,7 @@ export function Register({
                         user: { ...data.user, name: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="name"
                   />
                 </div>
@@ -177,7 +179,7 @@ export function Register({
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-user-email"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     E-mail
                   </label>
@@ -193,7 +195,7 @@ export function Register({
                         user: { ...data.user, email: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="email"
                   />
                 </div>
@@ -201,7 +203,7 @@ export function Register({
                 <div className="flex flex-col gap-2">
                   <label
                     htmlFor="register-user-password"
-                    className="text-[14px] font-semibold leading-5 text-ematricula-text-primary"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
                   >
                     Senha
                   </label>
@@ -217,7 +219,7 @@ export function Register({
                         user: { ...data.user, password: e.target.value },
                       })
                     }
-                    className="min-h-11 w-full min-w-0 rounded-ematricula-control bg-ematricula-surface px-4 py-3 text-base leading-snug text-ematricula-text-primary shadow-ematricula-input placeholder:text-ematricula-text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
+                    className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="new-password"
                   />
                 </div>
@@ -229,30 +231,30 @@ export function Register({
                 type="submit"
                 disabled={isLoading}
                 aria-disabled={isLoading}
-                className="relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-[24px] px-4 py-3.5 shadow-ematricula-cta disabled:opacity-60 sm:min-h-0 sm:py-4"
+                className="relative flex min-h-12 w-full items-center justify-center overflow-hidden rounded-[24px] px-4 py-3.5 shadow-cta disabled:opacity-60 sm:min-h-0 sm:py-4"
                 style={{
                   backgroundImage:
-                    "linear-gradient(90deg, var(--ematricula-cta-gradient-from) 0%, var(--ematricula-cta-gradient-to) 100%)",
+                    "linear-gradient(90deg, var(--primary) 0%, var(--primary-end) 100%)",
                 }}
               >
-                <span className="text-base font-bold leading-7 text-ematricula-text-on-brand sm:text-[18px]">
+                <span className="text-base font-bold leading-7 text-primary-foreground sm:text-[18px]">
                   {isLoading ? "Cadastrando..." : "Cadastrar"}
                 </span>
               </button>
 
               <div className="relative flex w-full justify-center py-2">
-                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-ematricula-border-input" />
-                <span className="relative max-w-[90%] bg-ematricula-surface px-2 text-center text-[12px] font-medium leading-4 text-ematricula-text-muted">
+                <div className="absolute inset-x-0 top-1/2 h-px -translate-y-1/2 bg-border" />
+                <span className="relative max-w-[90%] bg-card px-2 text-center text-[12px] font-medium leading-4 text-muted">
                   Já possui acesso?
                 </span>
               </div>
 
               <button
                 type="button"
-                className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[24px] bg-ematricula-signup-pill-bg px-3 py-3.5 sm:min-h-0 sm:py-4"
+                className="flex min-h-12 w-full cursor-pointer items-center justify-center rounded-[24px] bg-accent-soft px-3 py-3.5 sm:min-h-0 sm:py-4"
                 onClick={() => router.push("/sign-in")}
               >
-                <span className="text-center text-sm font-bold leading-6 text-ematricula-link sm:text-[16px]">
+                <span className="text-center text-sm font-bold leading-6 text-primary sm:text-[16px]">
                   Já tem uma conta? Faça login aqui
                 </span>
               </button>

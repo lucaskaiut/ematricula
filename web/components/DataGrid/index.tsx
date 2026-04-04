@@ -12,7 +12,7 @@ export function DataGridRoot({ children, className, maxHeightClassName }: DataGr
   return (
     <div
       className={cx(
-        'flex w-full flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-white',
+        'flex w-full flex-col overflow-x-hidden overflow-y-auto overscroll-y-contain bg-card',
         maxHeightClassName ?? 'max-h-[calc(100dvh-11rem)]',
         className,
       )}
