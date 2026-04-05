@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Modules\Core\Domain\Attributes\TracksUserAudit;
 use App\Modules\Core\Domain\Observers\UserAuditObserver;
 use App\Modules\Core\Domain\Traits\HasCompany;
+use App\Modules\Enrollment\Domain\Models\Enrollment;
 use App\Modules\Modality\Domain\Models\Modality;
 use App\Modules\Person\Domain\Enums\PersonProfile;
 use App\Modules\Person\Domain\Enums\PersonStatus;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ObservedBy([UserAuditObserver::class])]
 #[TracksUserAudit]
@@ -120,6 +122,11 @@ class Person extends Model
     {
         return $this->belongsToMany(Modality::class, 'modality_person')
             ->withTimestamps();
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(Enrollment::class, 'student_person_id');
     }
 
     public function isMinor(): bool

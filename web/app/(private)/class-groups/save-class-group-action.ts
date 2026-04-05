@@ -30,7 +30,8 @@ function flattenZodFieldErrors(
       key === 'max_capacity' ||
       key === 'weekdays' ||
       key === 'starts_at' ||
-      key === 'ends_at'
+      key === 'ends_at' ||
+      key === 'plan_ids'
     ) {
       if (!out[key]) out[key] = issue.message;
     }
@@ -50,6 +51,7 @@ function mapApiValidationToFields(
     weekdays: 'weekdays',
     starts_at: 'starts_at',
     ends_at: 'ends_at',
+    plan_ids: 'plan_ids',
   };
   const out: Partial<Record<keyof ClassGroupFormValues, string>> = {};
   for (const [apiKey, messages] of Object.entries(errors)) {
@@ -57,6 +59,9 @@ function mapApiValidationToFields(
     if (formKey && messages?.[0]) out[formKey] = messages[0];
     if (apiKey.startsWith('weekdays.')) {
       if (messages?.[0]) out.weekdays = messages[0];
+    }
+    if (apiKey === 'plan_ids' || apiKey.startsWith('plan_ids.')) {
+      if (messages?.[0]) out.plan_ids = messages[0];
     }
   }
   return out;
@@ -90,6 +95,7 @@ export async function saveClassGroupAction(input: {
   } else {
     body.max_capacity = data.max_capacity;
   }
+  body.plan_ids = data.plan_ids;
 
   try {
     if (input.mode === 'create') {

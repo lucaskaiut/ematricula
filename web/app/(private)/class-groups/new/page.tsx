@@ -12,6 +12,7 @@ export default function NewClassGroupPage() {
         weekdays: [],
         starts_at: '',
         ends_at: '',
+        plan_ids: [],
       }}
     />
   );

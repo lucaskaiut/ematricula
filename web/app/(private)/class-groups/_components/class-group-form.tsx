@@ -9,7 +9,7 @@ import { Controller, useForm, type Resolver } from 'react-hook-form';
 import type { ApiResponse } from '@/lib/api';
 import type { ClassGroupFormMode, ClassGroupFormValues } from '@/lib/validations/class-group-form';
 import { classGroupFormValuesSchema } from '@/lib/validations/class-group-form';
-import type { ModalityAttributes, PersonAttributes } from '@/types/api';
+import type { ModalityAttributes, PersonAttributes, PlanAttributes } from '@/types/api';
 
 import { saveClassGroupAction, type SaveClassGroupActionResult } from '../save-class-group-action';
 import { WeekdayPicker } from '../weekday-picker';
@@ -47,6 +47,18 @@ export function ClassGroupForm({ mode, classGroupId, defaultValues }: ClassGroup
     },
   });
 
+  const { data: plansRes } = useQuery({
+    queryKey: ['plans', 'options', 'class-groups-form'],
+    queryFn: async () => {
+      const p = new URLSearchParams();
+      p.set('per_page', '500');
+      p.append('orderBy[name]', 'asc');
+      const res = await fetch(`/api/plans?${p}`);
+      if (!res.ok) throw new Error('Falha ao carregar planos');
+      return (await res.json()) as ApiResponse<PlanAttributes[]>;
+    },
+  });
+
   const { data: teachersRes } = useQuery({
     queryKey: ['persons', 'teachers-options', 'class-groups-form'],
     queryFn: async () => {
@@ -73,6 +85,11 @@ export function ClassGroupForm({ mode, classGroupId, defaultValues }: ClassGroup
     [teacherOptions],
   );
 
+  const planOptions = useMemo(
+    () => [...(plansRes?.data ?? [])].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    [plansRes?.data],
+  );
+
   const applyServerErrors = (result: Extract<SaveClassGroupActionResult, { success: false }>) => {
     if (result.fieldErrors) {
       const fieldKeys: (keyof ClassGroupFormValues)[] = [
@@ -83,6 +100,7 @@ export function ClassGroupForm({ mode, classGroupId, defaultValues }: ClassGroup
         'weekdays',
         'starts_at',
         'ends_at',
+        'plan_ids',
       ];
       for (const key of fieldKeys) {
         const msg = result.fieldErrors[key];
@@ -115,7 +133,7 @@ export function ClassGroupForm({ mode, classGroupId, defaultValues }: ClassGroup
   const subtitle =
     mode === 'create'
       ? 'Defina nome, modalidade, professor, dias e horários da turma.'
-      : 'Atualize os dados da turma.';
+      : 'Atualize os dados da turma. Planos definem as opções de cobrança na matrícula.';
 
   return (
     <div className="min-h-[calc(100dvh-8rem)] w-full min-w-0 px-4 py-6 sm:px-6 sm:py-10">
@@ -234,6 +252,61 @@ export function ClassGroupForm({ mode, classGroupId, defaultValues }: ClassGroup
               {form.formState.errors.max_capacity ? (
                 <p className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
                   {form.formState.errors.max_capacity.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="min-w-0 lg:col-span-2">
+              <p className={labelClass}>Planos aceitos na matrícula</p>
+              <p className="mt-1 text-xs text-muted">
+                Selecione quais planos o aluno poderá escolher ao se matricular nesta turma.
+              </p>
+              <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                {planOptions.map((plan) => (
+                  <li key={plan.id}>
+                    <label className="flex cursor-pointer items-start gap-2.5 rounded-control border border-border bg-card px-3 py-2.5 text-sm shadow-input has-focus-visible:ring-2 has-focus-visible:ring-primary/25">
+                      <Controller
+                        name="plan_ids"
+                        control={form.control}
+                        render={({ field }) => {
+                          const checked = field.value.includes(plan.id);
+                          return (
+                            <input
+                              type="checkbox"
+                              className="mt-0.5 size-4 shrink-0 rounded border-border"
+                              checked={checked}
+                              onChange={(e) => {
+                                const next = new Set(field.value);
+                                if (e.target.checked) next.add(plan.id);
+                                else next.delete(plan.id);
+                                field.onChange([...next].sort((a, b) => a - b));
+                              }}
+                            />
+                          );
+                        }}
+                      />
+                      <span className="min-w-0">
+                        <span className="font-medium text-foreground">{plan.name}</span>
+                        <span className="mt-0.5 block text-xs text-muted">
+                          {plan.billing_cycle === 'year' ? 'Ano' : 'Mês'} · intervalo{' '}
+                          {plan.billing_interval}
+                        </span>
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+              {planOptions.length === 0 ? (
+                <p className="mt-2 text-sm text-muted">
+                  Nenhum plano cadastrado.{' '}
+                  <Link href="/planos/new" className="font-medium text-primary underline-offset-2 hover:underline">
+                    Criar plano
+                  </Link>
+                </p>
+              ) : null}
+              {form.formState.errors.plan_ids ? (
+                <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+                  {form.formState.errors.plan_ids.message as string}
                 </p>
               ) : null}
             </div>

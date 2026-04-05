@@ -52,6 +52,13 @@ class ClassGroupRequest extends FormRequest
             }
         }
 
+        if ($this->has('plan_ids')) {
+            $p = $this->input('plan_ids');
+            if ($p === '' || $p === null) {
+                $merge['plan_ids'] = [];
+            }
+        }
+
         if ($merge !== []) {
             $this->merge($merge);
         }
@@ -90,6 +97,13 @@ class ClassGroupRequest extends FormRequest
             'weekdays.*' => ['integer', Rule::in([0, 1, 2, 3, 4, 5, 6])],
             'starts_at' => ['required', 'string', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
             'ends_at' => ['required', 'string', 'regex:/^\d{2}:\d{2}(:\d{2})?$/'],
+            'plan_ids' => ['nullable', 'array'],
+            'plan_ids.*' => [
+                'integer',
+                Rule::exists('plans', 'id')->where(
+                    fn ($q) => $q->where('company_id', $companyId),
+                ),
+            ],
         ];
     }
 

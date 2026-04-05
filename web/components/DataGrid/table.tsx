@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { createPortal } from 'react-dom';
 
 import { useColumnVisibility, useContainerWidth } from './hooks';
 import type { Column, ColumnAlignment, DataGridTableProps } from './types.ts';
@@ -137,6 +138,23 @@ function SkeletonCell({ align }: { align?: ColumnAlignment }) {
   );
 }
 
+const DG_MENU_WIDTH_PX = 176;
+const DG_MENU_MIN_HEIGHT_PX = 90;
+const DG_MENU_GAP_PX = 4;
+
+function computeDataGridActionMenuPosition(btn: DOMRect) {
+  const spaceBelow = window.innerHeight - btn.bottom - DG_MENU_GAP_PX;
+  const openUpward =
+    spaceBelow < DG_MENU_MIN_HEIGHT_PX && btn.top > DG_MENU_MIN_HEIGHT_PX + DG_MENU_GAP_PX;
+  const top = openUpward
+    ? btn.top - DG_MENU_MIN_HEIGHT_PX - DG_MENU_GAP_PX
+    : btn.bottom + DG_MENU_GAP_PX;
+  let left = btn.right - DG_MENU_WIDTH_PX;
+  left = Math.max(8, Math.min(left, window.innerWidth - DG_MENU_WIDTH_PX - 8));
+
+  return { top, left };
+}
+
 function SkeletonRow<T>({ cols }: { cols: Column<T>[] }) {
   return (
     <div className="grid grid-cols-12 items-center gap-3 rounded-xl px-4 py-3">
@@ -170,6 +188,11 @@ export function DataGridTable<T>({
 
   const [openRows, setOpenRows] = React.useState<Record<string, boolean>>({});
   const [openActionMenuKey, setOpenActionMenuKey] = React.useState<string | null>(null);
+  const [actionMenuPosition, setActionMenuPosition] = React.useState<{
+    top: number;
+    left: number;
+  } | null>(null);
+  const actionMenuAnchorRefs = React.useRef<Map<string, HTMLButtonElement>>(new Map());
   const hasData = data.length > 0;
   const firstLoad = loading && !hasData;
   const showOverlay = loading && hasData;
@@ -185,6 +208,31 @@ export function DataGridTable<T>({
   React.useEffect(() => {
     if (!hasRowActions) setOpenActionMenuKey(null);
   }, [hasRowActions]);
+
+  const syncActionMenuPosition = React.useCallback(() => {
+    if (!openActionMenuKey) {
+      setActionMenuPosition(null);
+      return;
+    }
+    const btn = actionMenuAnchorRefs.current.get(openActionMenuKey);
+    if (!btn) return;
+    setActionMenuPosition(computeDataGridActionMenuPosition(btn.getBoundingClientRect()));
+  }, [openActionMenuKey]);
+
+  React.useLayoutEffect(() => {
+    syncActionMenuPosition();
+  }, [syncActionMenuPosition]);
+
+  React.useEffect(() => {
+    if (!openActionMenuKey) return;
+    const onScrollOrResize = () => syncActionMenuPosition();
+    window.addEventListener('scroll', onScrollOrResize, true);
+    window.addEventListener('resize', onScrollOrResize);
+    return () => {
+      window.removeEventListener('scroll', onScrollOrResize, true);
+      window.removeEventListener('resize', onScrollOrResize);
+    };
+  }, [openActionMenuKey, syncActionMenuPosition]);
 
   React.useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -264,7 +312,11 @@ export function DataGridTable<T>({
   const toggleActionMenu = React.useCallback((rowKey: React.Key) => {
     setOpenActionMenuKey((prev) => {
       const next = String(rowKey);
-      return prev === next ? null : next;
+      if (prev === next) {
+        setActionMenuPosition(null);
+        return null;
+      }
+      return next;
     });
   }, []);
 
@@ -272,6 +324,7 @@ export function DataGridTable<T>({
     (row: T) => {
       onEdit?.(row);
       setOpenActionMenuKey(null);
+      setActionMenuPosition(null);
     },
     [onEdit],
   );
@@ -280,9 +333,80 @@ export function DataGridTable<T>({
     (row: T) => {
       onDelete?.(row);
       setOpenActionMenuKey(null);
+      setActionMenuPosition(null);
     },
     [onDelete],
   );
+
+  const actionMenuRow = React.useMemo(() => {
+    if (!openActionMenuKey) return null;
+    for (let i = 0; i < data.length; i++) {
+      const row = data[i]!;
+      if (String(stableRowKey(row, i, getRowId)) === openActionMenuKey) {
+        return row;
+      }
+    }
+    return null;
+  }, [openActionMenuKey, data, getRowId]);
+
+  const actionMenuPortal =
+    typeof document !== 'undefined' &&
+    openActionMenuKey &&
+    actionMenuPosition &&
+    actionMenuRow &&
+    (onEdit || onDelete)
+      ? createPortal(
+          <div
+            data-dg-action-menu
+            role="menu"
+            aria-label="Ações da linha"
+            className={cx(
+              'fixed z-100 min-w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg',
+            )}
+            style={{
+              top: actionMenuPosition.top,
+              left: actionMenuPosition.left,
+              width: DG_MENU_WIDTH_PX,
+            }}
+          >
+            {onEdit ? (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onActionEdit(actionMenuRow);
+                }}
+                className={cx(
+                  'flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground',
+                  'hover:bg-accent',
+                )}
+              >
+                Editar
+              </button>
+            ) : null}
+            {onDelete ? (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  onActionDelete(actionMenuRow);
+                }}
+                className={cx(
+                  'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400',
+                  'hover:bg-red-500/10 dark:hover:bg-red-500/20',
+                )}
+              >
+                Excluir
+              </button>
+            ) : null}
+          </div>,
+          document.body,
+        )
+      : null;
 
   return (
     <div
@@ -394,6 +518,10 @@ export function DataGridTable<T>({
                           <div className="relative w-10 shrink-0" data-dg-action-menu>
                             <button
                               type="button"
+                              ref={(el) => {
+                                if (el) actionMenuAnchorRefs.current.set(rowKeyStr, el);
+                                else actionMenuAnchorRefs.current.delete(rowKeyStr);
+                              }}
                               aria-haspopup="menu"
                               aria-expanded={openActionMenuKey === rowKeyStr}
                               onClick={(e) => {
@@ -417,51 +545,6 @@ export function DataGridTable<T>({
                                 <path d="M6 10a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Zm5.5 0a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0ZM17 10a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
                               </svg>
                             </button>
-
-                            {openActionMenuKey === rowKeyStr ? (
-                              <div
-                                role="menu"
-                                aria-label="Ações da linha"
-                                className={cx(
-                                  'absolute left-0 top-10 z-30 min-w-44 overflow-hidden rounded-xl border border-border bg-card shadow-lg',
-                                )}
-                              >
-                                {onEdit ? (
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      onActionEdit(row);
-                                    }}
-                                    className={cx(
-                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground',
-                                      'hover:bg-accent',
-                                    )}
-                                  >
-                                    Editar
-                                  </button>
-                                ) : null}
-                                {onDelete ? (
-                                  <button
-                                    type="button"
-                                    role="menuitem"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      onActionDelete(row);
-                                    }}
-                                    className={cx(
-                                      'flex w-full items-center gap-2 px-3 py-2 text-sm text-red-600 dark:text-red-400',
-                                      'hover:bg-red-500/10 dark:hover:bg-red-500/20',
-                                    )}
-                                  >
-                                    Excluir
-                                  </button>
-                                ) : null}
-                              </div>
-                            ) : null}
                           </div>
                         ) : null}
 
@@ -533,6 +616,7 @@ export function DataGridTable<T>({
           ) : null}
         </div>
       </div>
+      {actionMenuPortal}
     </div>
   );
 }

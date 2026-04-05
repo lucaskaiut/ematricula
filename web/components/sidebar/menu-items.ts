@@ -1,5 +1,14 @@
 import type { LucideIcon } from "lucide-react";
-import { BookOpen, LayoutDashboard, Layers, Presentation, School, Users } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  CreditCard,
+  LayoutDashboard,
+  Layers,
+  Presentation,
+  School,
+  Users,
+} from "lucide-react";
 
 export type SidebarItem = {
   label: string;
@@ -14,5 +23,7 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   { label: "Alunos", href: "/alunos", icon: School, match: "prefix" },
   { label: "Professores", href: "/professores", icon: Presentation, match: "prefix" },
   { label: "Modalidades", href: "/modalidades", icon: Layers, match: "prefix" },
+  { label: "Planos", href: "/planos", icon: CreditCard, match: "prefix" },
   { label: "Turmas", href: "/class-groups", icon: BookOpen, match: "prefix" },
+  { label: "Matrículas", href: "/matriculas", icon: ClipboardList, match: "prefix" },
 ];

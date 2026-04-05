@@ -64,7 +64,26 @@ class ClassGroupResource extends JsonResource
                     ]
                     : null,
             ),
+            'plans' => $this->whenLoaded(
+                'plans',
+                fn () => $this->plans->map(fn ($plan) => [
+                    'id' => $plan->id,
+                    'name' => $plan->name,
+                    'price' => $this->formatMoney($plan->price),
+                    'billing_cycle' => $plan->billing_cycle->value,
+                    'billing_interval' => $plan->billing_interval,
+                ])->values()->all(),
+            ),
         ];
+    }
+
+    private function formatMoney(mixed $value): ?string
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return number_format((float) $value, 2, '.', '');
     }
 
     private function formatTime(mixed $value): ?string

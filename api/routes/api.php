@@ -2,8 +2,12 @@
 
 use App\Modules\ClassGroup\Http\Controllers\ClassGroupController;
 use App\Modules\Company\Http\Middlewares\InitializeCompany;
+use App\Modules\Enrollment\Http\Controllers\EnrollmentController;
+use App\Modules\Invoice\Http\Controllers\InvoiceController;
 use App\Modules\Modality\Http\Controllers\ModalityController;
 use App\Modules\Person\Http\Controllers\PersonController;
+use App\Modules\Plan\Http\Controllers\PlanController;
+use App\Modules\Subscription\Http\Controllers\SubscriptionController;
 use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
@@ -24,6 +28,35 @@ Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function ()
         Route::put('/{id}', [ClassGroupController::class, 'update']);
         Route::patch('/{id}', [ClassGroupController::class, 'update']);
         Route::delete('/{id}', [ClassGroupController::class, 'destroy']);
+    });
+    Route::group(['prefix' => 'enrollments'], function () {
+        Route::get('/', [EnrollmentController::class, 'index']);
+        Route::get('/{id}', [EnrollmentController::class, 'show']);
+        Route::post('/', [EnrollmentController::class, 'store']);
+        Route::put('/{id}', [EnrollmentController::class, 'update']);
+        Route::patch('/{id}', [EnrollmentController::class, 'update']);
+        Route::delete('/{id}', [EnrollmentController::class, 'destroy']);
+    });
+    Route::group(['prefix' => 'plans'], function () {
+        Route::get('/', [PlanController::class, 'index']);
+        Route::get('/{id}', [PlanController::class, 'show']);
+        Route::post('/', [PlanController::class, 'store']);
+        Route::put('/{id}', [PlanController::class, 'update']);
+        Route::patch('/{id}', [PlanController::class, 'update']);
+        Route::delete('/{id}', [PlanController::class, 'destroy']);
+    });
+    Route::group(['prefix' => 'subscriptions'], function () {
+        Route::get('/', [SubscriptionController::class, 'index']);
+        Route::post('/{id}/generate-next-invoice', [SubscriptionController::class, 'generateNextInvoice']);
+        Route::get('/{id}', [SubscriptionController::class, 'show']);
+        Route::put('/{id}', [SubscriptionController::class, 'update']);
+        Route::patch('/{id}', [SubscriptionController::class, 'update']);
+    });
+    Route::group(['prefix' => 'invoices'], function () {
+        Route::get('/', [InvoiceController::class, 'index']);
+        Route::get('/{id}', [InvoiceController::class, 'show']);
+        Route::put('/{id}', [InvoiceController::class, 'update']);
+        Route::patch('/{id}', [InvoiceController::class, 'update']);
     });
     Route::group(['prefix' => 'persons'], function () {
         Route::get('/', [PersonController::class, 'index']);

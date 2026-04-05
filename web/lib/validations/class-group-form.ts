@@ -33,6 +33,7 @@ export const classGroupFormValuesSchema = z
     weekdays: weekdaysSchema,
     starts_at: timeSchema,
     ends_at: timeSchema,
+    plan_ids: z.array(z.number().int().positive()),
   })
   .superRefine((data, ctx) => {
     if (data.ends_at <= data.starts_at) {

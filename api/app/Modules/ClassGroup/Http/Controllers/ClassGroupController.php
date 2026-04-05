@@ -31,7 +31,7 @@ class ClassGroupController extends Controller
         $result = $this->service()->paginate(
             perPage: $perPage,
             conditions: $filters,
-            relations: ['modality', 'teacher', 'creator', 'updater'],
+            relations: ['modality', 'teacher', 'creator', 'updater', 'plans'],
             orderBy: $orderBy
         );
 
@@ -43,7 +43,7 @@ class ClassGroupController extends Controller
         $model = $this->service()->findOrFail(
             $id,
             ['*'],
-            ['modality', 'teacher', 'creator', 'updater']
+            ['modality', 'teacher', 'creator', 'updater', 'plans']
         );
 
         return $this->respondWithItem($model);

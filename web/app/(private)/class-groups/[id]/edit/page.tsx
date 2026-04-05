@@ -37,6 +37,7 @@ export default async function EditClassGroupPage({ params }: PageProps) {
         weekdays: parseWeekdaysFromApi(row.weekdays),
         starts_at: row.starts_at ?? '',
         ends_at: row.ends_at ?? '',
+        plan_ids: (row.plans ?? []).map((p) => p.id),
       }}
     />
   );
