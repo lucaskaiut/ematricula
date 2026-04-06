@@ -5,6 +5,7 @@ use App\Modules\Company\Http\Middlewares\InitializeCompany;
 use App\Modules\Enrollment\Http\Controllers\EnrollmentController;
 use App\Modules\Invoice\Http\Controllers\InvoiceController;
 use App\Modules\Modality\Http\Controllers\ModalityController;
+use App\Modules\Payment\Http\Controllers\PaymentController;
 use App\Modules\Person\Http\Controllers\PersonController;
 use App\Modules\Plan\Http\Controllers\PlanController;
 use App\Modules\Subscription\Http\Controllers\SubscriptionController;
@@ -55,9 +56,11 @@ Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function ()
     Route::group(['prefix' => 'invoices'], function () {
         Route::get('/', [InvoiceController::class, 'index']);
         Route::get('/{id}', [InvoiceController::class, 'show']);
+        Route::post('/{invoice}/payments', [PaymentController::class, 'store']);
         Route::put('/{id}', [InvoiceController::class, 'update']);
         Route::patch('/{id}', [InvoiceController::class, 'update']);
     });
+    Route::post('payments/{payment}/sync-status', [PaymentController::class, 'syncStatus']);
     Route::group(['prefix' => 'persons'], function () {
         Route::get('/', [PersonController::class, 'index']);
         Route::get('/{id}', [PersonController::class, 'show']);

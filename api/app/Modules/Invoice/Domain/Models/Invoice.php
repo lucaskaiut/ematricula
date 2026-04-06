@@ -6,10 +6,15 @@ namespace App\Modules\Invoice\Domain\Models;
 
 use App\Modules\Core\Domain\Traits\HasCompany;
 use App\Modules\Invoice\Domain\Enums\InvoiceStatus;
+use App\Modules\Invoice\Domain\Observers\InvoiceObserver;
+use App\Modules\Payment\Domain\Models\Payment;
 use App\Modules\Subscription\Domain\Models\Subscription;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ObservedBy([InvoiceObserver::class])]
 class Invoice extends Model
 {
     use HasCompany;
@@ -36,5 +41,10 @@ class Invoice extends Model
     public function subscription(): BelongsTo
     {
         return $this->belongsTo(Subscription::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
     }
 }
