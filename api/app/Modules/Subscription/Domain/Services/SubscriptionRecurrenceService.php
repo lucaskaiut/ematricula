@@ -6,6 +6,7 @@ namespace App\Modules\Subscription\Domain\Services;
 
 use App\Modules\Invoice\Domain\Enums\InvoiceStatus;
 use App\Modules\Invoice\Domain\Models\Invoice;
+use App\Modules\Setting\Domain\Services\TenantSettingsService;
 use App\Modules\Subscription\Domain\Enums\SubscriptionStatus;
 use App\Modules\Subscription\Domain\Models\Subscription;
 use App\Modules\Subscription\Domain\Support\BillingDate;
@@ -15,6 +16,12 @@ use Illuminate\Validation\ValidationException;
 
 class SubscriptionRecurrenceService
 {
+    private const INVOICE_DUE_DAYS_FALLBACK = 7;
+
+    public function __construct(
+        private readonly TenantSettingsService $tenantSettings,
+    ) {}
+
     public function invoiceDaysBeforeDue(): int
     {
         return max(0, (int) config('billing.invoice_generate_days_before_due', 5));
@@ -34,9 +41,15 @@ class SubscriptionRecurrenceService
         return $this->nextBillingAtEligibleForAutomaticGeneration($today, $billingStartsOnYmd);
     }
 
-    public function createInvoiceForCurrentCycleAndAdvance(Subscription $locked): void
+    public function createInvoiceForCurrentCycleAndAdvance(Subscription $locked, CarbonImmutable $issuedOn): void
     {
-        $dueString = $locked->next_billing_at->toDateString();
+        $cycleAnchorYmd = $locked->next_billing_at->toDateString();
+        $dueDays = $this->tenantSettings->getInt(
+            (int) $locked->company_id,
+            'invoice.due_days',
+            self::INVOICE_DUE_DAYS_FALLBACK,
+        );
+        $dueString = $issuedOn->addDays($dueDays)->toDateString();
 
         Invoice::query()->firstOrCreate(
             [
@@ -53,12 +66,12 @@ class SubscriptionRecurrenceService
 
         $locked->refresh();
 
-        if ($locked->next_billing_at->toDateString() !== $dueString) {
+        if ($locked->next_billing_at->toDateString() !== $cycleAnchorYmd) {
             return;
         }
 
         $locked->next_billing_at = BillingDate::addCycle(
-            CarbonImmutable::parse($dueString),
+            CarbonImmutable::parse($cycleAnchorYmd),
             (string) $locked->billing_cycle,
             (int) $locked->billing_interval,
         )->toDateString();
@@ -82,7 +95,7 @@ class SubscriptionRecurrenceService
                 return;
             }
 
-            $this->createInvoiceForCurrentCycleAndAdvance($locked);
+            $this->createInvoiceForCurrentCycleAndAdvance($locked, $today);
         });
     }
 
@@ -96,7 +109,8 @@ class SubscriptionRecurrenceService
                 ]);
             }
 
-            $this->createInvoiceForCurrentCycleAndAdvance($locked);
+            $issuedOn = CarbonImmutable::parse(now()->toDateString())->startOfDay();
+            $this->createInvoiceForCurrentCycleAndAdvance($locked, $issuedOn);
 
             return $locked->fresh(['enrollment.student', 'plan', 'invoices']) ?? $locked;
         });

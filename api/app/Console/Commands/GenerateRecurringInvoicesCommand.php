@@ -15,7 +15,7 @@ class GenerateRecurringInvoicesCommand extends Command
 {
     protected $signature = 'billing:generate-recurring-invoices {--date= : Data de referência Y-m-d (padrão: hoje)}';
 
-    protected $description = 'Gera faturas quando faltar até N dias para o vencimento (config billing.invoice_generate_days_before_due)';
+    protected $description = 'Gera faturas quando faltar até N dias para o vencimento do ciclo (billing.invoice_generate_days_before_due); vencimento da fatura = emissão + invoice.due_days (configuração do tenant, fallback 7 dias)';
 
     public function handle(SubscriptionRecurrenceService $recurrence): int
     {

@@ -7,7 +7,7 @@
 </head>
 <body style="font-family: system-ui, sans-serif; line-height: 1.5; color: #1a1a1a;">
     <p>Olá, {{ $studentName }}</p>
-    <p>Uma nova fatura foi gerada para você no eMatrícula.</p>
+    <p>Uma nova fatura foi gerada para você em {{ $companyName }}.</p>
     <ul>
         <li>Número da fatura: {{ $invoiceId }}</li>
         <li>Valor: {{ $amountDisplay }}</li>
@@ -22,6 +22,5 @@
             </tr>
         </table>
     @endif
-    <p>Acesse o sistema para acompanhar o pagamento e demais informações.</p>
 </body>
 </html>

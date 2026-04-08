@@ -69,6 +69,7 @@ class PersonRequest extends FormRequest
                 'regex:/^[0-9]{11}$/',
                 Rule::unique('people', 'cpf')
                     ->where(fn ($q) => $q->where('company_id', $companyId))
+                    ->where('profile', $this->input('profile'))
                     ->ignore($personId),
             ],
             'phone' => ['required', 'string', 'regex:/^[0-9]{10,13}$/'],
@@ -80,6 +81,7 @@ class PersonRequest extends FormRequest
                 'max:255',
                 Rule::unique('people', 'email')
                     ->where(fn ($q) => $q->where('company_id', $companyId))
+                    ->where('profile', $this->input('profile'))
                     ->ignore($personId),
             ],
             'guardian_person_id' => [

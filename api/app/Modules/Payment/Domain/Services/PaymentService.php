@@ -35,6 +35,7 @@ class PaymentService
         $data = new CreatePaymentData(
             invoiceId: (int) $invoice->id,
             amount: (string) $invoice->amount,
+            companyId: (int) $invoice->company_id,
             dueDate: $invoice->due_date?->format('Y-m-d'),
         );
         $response = $gateway->createPayment($data);
@@ -52,7 +53,7 @@ class PaymentService
     public function getStatus(Payment $payment): PaymentStatus
     {
         $gateway = $this->gatewayRegistry->get($payment->gateway);
-        $status = $gateway->getPaymentStatus($payment->gateway_payment_id);
+        $status = $gateway->getPaymentStatus($payment->gateway_payment_id, $payment);
         $payment->status = $status;
         $payment->save();
 

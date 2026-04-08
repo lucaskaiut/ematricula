@@ -31,7 +31,7 @@ class ClassGroupController extends Controller
         $result = $this->service()->paginate(
             perPage: $perPage,
             conditions: $filters,
-            relations: ['modality', 'teacher', 'creator', 'updater', 'plans'],
+            relations: ['modality', 'teacher', 'creator', 'updater', 'plans', 'enrollments'],
             orderBy: $orderBy
         );
 

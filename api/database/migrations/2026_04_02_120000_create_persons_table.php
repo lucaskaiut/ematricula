@@ -24,8 +24,8 @@ return new class extends Migration
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();
 
-            $table->unique(['company_id', 'email']);
-            $table->unique(['company_id', 'cpf']);
+            $table->unique(['company_id', 'email', 'profile']);
+            $table->unique(['company_id', 'cpf', 'profile']);
         });
     }
 

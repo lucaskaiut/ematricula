@@ -8,6 +8,7 @@ use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\Notification\Domain\Dtos\OutboundNotification;
 use App\Modules\Notification\Domain\Enums\NotificationType;
 use App\Modules\Notification\Domain\Services\NotificationHub;
+use App\Modules\Payment\Domain\Services\InvoicePaymentMethodResolver;
 use App\Modules\Payment\Domain\Services\PaymentService;
 use Illuminate\Support\Facades\DB;
 
@@ -16,14 +17,15 @@ final class InvoiceObserver
     public function __construct(
         private readonly NotificationHub $hub,
         private readonly PaymentService $paymentService,
+        private readonly InvoicePaymentMethodResolver $invoicePaymentMethodResolver,
     ) {}
 
     public function created(Invoice $invoice): void
     {
-        $gateway = (string) config('payments.default_gateway_on_invoice_create', 'generic');
+        $gateway = $this->invoicePaymentMethodResolver->resolveForCompany((int) $invoice->company_id);
         $payment = $this->paymentService->create($invoice, $gateway);
 
-        $invoice->loadMissing(['subscription.enrollment.student']);
+        $invoice->loadMissing(['subscription.enrollment.student', 'company']);
         $student = $invoice->subscription?->enrollment?->student;
 
         $recipientEmail = null;
@@ -43,6 +45,7 @@ final class InvoiceObserver
                 'amount' => (string) $invoice->amount,
                 'due_date' => $invoice->due_date->toDateString(),
                 'payment_url' => $payment->payment_url,
+                'company_name' => (string) ($invoice->company?->name ?? ''),
             ],
         );
 

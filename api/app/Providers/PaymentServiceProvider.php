@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace App\Providers;
 
 use App\Modules\Payment\Domain\Contracts\PaymentGatewayRegistryInterface;
+use App\Modules\Payment\Infrastructure\Gateways\AsaasPayment;
 use App\Modules\Payment\Infrastructure\Gateways\GenericPayment;
 use App\Modules\Payment\Infrastructure\PaymentGatewayRegistry;
+use App\Modules\Setting\Domain\Services\TenantSettingsService;
 use Illuminate\Support\ServiceProvider;
 
 class PaymentServiceProvider extends ServiceProvider
@@ -16,6 +18,12 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(GenericPayment::class, function () {
             return new GenericPayment(
                 approveAfterSeconds: (int) config('payments.generic.approve_after_seconds', 30),
+            );
+        });
+
+        $this->app->bind(AsaasPayment::class, function ($app) {
+            return new AsaasPayment(
+                $app->make(TenantSettingsService::class),
             );
         });
 

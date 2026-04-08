@@ -7,6 +7,7 @@ import {
   Layers,
   Presentation,
   School,
+  Settings,
   Users,
 } from "lucide-react";
 
@@ -26,4 +27,5 @@ export const SIDEBAR_ITEMS: SidebarItem[] = [
   { label: "Planos", href: "/planos", icon: CreditCard, match: "prefix" },
   { label: "Turmas", href: "/class-groups", icon: BookOpen, match: "prefix" },
   { label: "Matrículas", href: "/matriculas", icon: ClipboardList, match: "prefix" },
+  { label: "Configurações", href: "/configuracoes", icon: Settings, match: "prefix" },
 ];

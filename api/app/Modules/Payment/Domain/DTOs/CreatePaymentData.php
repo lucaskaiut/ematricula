@@ -9,6 +9,7 @@ readonly class CreatePaymentData
     public function __construct(
         public int $invoiceId,
         public string $amount,
+        public int $companyId,
         public ?string $dueDate = null,
     ) {}
 }

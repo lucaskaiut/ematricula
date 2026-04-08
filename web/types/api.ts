@@ -208,6 +208,25 @@ export type InvoiceAttributes = {
   updated_at?: string | null;
 };
 
+export type TenantSettingFieldType =
+  | 'string'
+  | 'boolean'
+  | 'number'
+  | 'select'
+  | 'json';
+
+export type TenantSettingField = {
+  key: string;
+  label: string;
+  description: string | null;
+  type: TenantSettingFieldType;
+  value: unknown;
+  default_value: unknown;
+  options?: string[] | null;
+};
+
+export type TenantSettingsGrouped = Record<string, TenantSettingField[]>;
+
 export type PersonAttributes = {
   id: number;
   company_id: number;

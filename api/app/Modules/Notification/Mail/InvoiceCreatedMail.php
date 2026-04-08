@@ -19,6 +19,7 @@ class InvoiceCreatedMail extends Mailable implements ShouldQueue, ShouldQueueAft
 
     public function __construct(
         public string $studentName,
+        public string $companyName,
         public string $amountDisplay,
         public string $dueDateDisplay,
         public int $invoiceId,

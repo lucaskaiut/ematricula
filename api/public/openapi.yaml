@@ -1,39 +1,50 @@
 openapi: 3.0.3
 info:
-  title: API eMatrícula — Usuários
+  title: API eMatrícula
   description: |
-    Especificação das rotas HTTP definidas em `routes/api.php`. A URL base em `servers` já inclui o
-    prefixo `/api` usado pelo Laravel; os caminhos abaixo são relativos a essa base (sem repetir `api`).
+    Rotas HTTP definidas em `routes/api.php`. A URL em `servers` já inclui o prefixo `/api` do Laravel;
+    os caminhos abaixo são relativos a essa base.
 
-    Rotas autenticadas usam **Laravel Sanctum** (`Authorization: Bearer <token>`) e o middleware
-    `InitializeCompany`: o usuário autenticado precisa estar vinculado a uma empresa; caso contrário
-    a API pode responder com **404** (“Company not found”).
+    **Autenticação:** rotas protegidas usam **Laravel Sanctum** (`Authorization: Bearer <token>`) e o middleware
+    `InitializeCompany`: o usuário precisa estar vinculado a uma empresa; caso contrário a API pode responder
+    com **404** (empresa não resolvida).
+
+    **Listagens:** endpoints `index` aceitam `filters`, `orderBy` e `per_page` na query (padrão dos serviços internos).
   version: 1.0.0
 
 servers:
   - url: http://localhost:8080/api
-    description: Docker Compose (nginx, HTTP na porta padrão)
+    description: Docker Compose (nginx, HTTP)
   - url: http://localhost/api
     description: Ambiente local (ajuste host/porta se necessário)
 
 tags:
+  - name: Sessão
+    description: Usuário autenticado
+  - name: Modalidades
+  - name: Turmas
+  - name: Matrículas
+  - name: Planos
+  - name: Assinaturas
+  - name: Faturas
+  - name: Pagamentos
+  - name: Pessoas
   - name: Usuários
-    description: Cadastro, autenticação e gestão de usuários
+    description: Gestão de usuários (autenticado) e registro/login público
+  - name: Configurações
+    description: Configurações dinâmicas por empresa (tenant)
 
 paths:
   /user/me:
     get:
-      tags: [Usuários]
-      summary: Obter o usuário autenticado
-      description: |
-        Retorna o perfil do usuário associado ao token Bearer. Útil para validar sessão e obter dados
-        atualizados.
+      tags: [Sessão]
+      summary: Perfil do usuário autenticado
       operationId: userMe
       security:
         - sanctum: []
       responses:
         "200":
-          description: Usuário encontrado
+          description: OK (`UserResource` em `data`)
           content:
             application/json:
               schema:
@@ -43,41 +54,983 @@ paths:
         "404":
           $ref: "#/components/responses/NaoEncontrado"
 
+  /settings:
+    get:
+      tags: [Configurações]
+      summary: Listar configurações do tenant (agrupadas)
+      description: |
+        Retorna todas as definições com valores resolvidos (override do tenant ou `default_value`).
+        Chaves de primeiro nível em `data` são os grupos (`general`, `invoice`, etc.).
+      operationId: tenantSettingsIndex
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantSettingsWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Configurações]
+      summary: Atualizar configurações em lote
+      description: |
+        Corpo `settings` é um mapa `chave` → valor. Use `null` para remover override e voltar ao padrão.
+      operationId: tenantSettingsUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TenantSettingsWrite"
+      responses:
+        "200":
+          description: OK (mesmo formato do GET)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TenantSettingsWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          description: Validação Laravel ou regra de negócio (chave desconhecida, tipo inválido)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+
+  /modalities:
+    get:
+      tags: [Modalidades]
+      summary: Listar modalidades (paginado)
+      operationId: modalitiesIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`ModalityResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Modalidades]
+      summary: Criar modalidade
+      operationId: modalitiesStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModalityWrite"
+      responses:
+        "201":
+          description: Criado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /modalities/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Modalidades]
+      summary: Obter modalidade
+      operationId: modalitiesShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Modalidades]
+      summary: Atualizar modalidade
+      operationId: modalitiesUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModalityWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Modalidades]
+      summary: Atualizar modalidade (parcial)
+      operationId: modalitiesPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ModalityWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    delete:
+      tags: [Modalidades]
+      summary: Excluir modalidade
+      operationId: modalitiesDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /class-groups:
+    get:
+      tags: [Turmas]
+      summary: Listar turmas (paginado)
+      operationId: classGroupsIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`ClassGroupResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Turmas]
+      summary: Criar turma
+      operationId: classGroupsStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassGroupWrite"
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /class-groups/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Turmas]
+      summary: Obter turma
+      operationId: classGroupsShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Turmas]
+      summary: Atualizar turma
+      operationId: classGroupsUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassGroupWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Turmas]
+      summary: Atualizar turma (parcial)
+      operationId: classGroupsPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClassGroupWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    delete:
+      tags: [Turmas]
+      summary: Excluir turma
+      operationId: classGroupsDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /enrollments:
+    get:
+      tags: [Matrículas]
+      summary: Listar matrículas (paginado)
+      operationId: enrollmentsIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`EnrollmentResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Matrículas]
+      summary: Criar matrícula
+      operationId: enrollmentsStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentCreate"
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /enrollments/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Matrículas]
+      summary: Obter matrícula
+      operationId: enrollmentsShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Matrículas]
+      summary: Atualizar matrícula
+      description: |
+        Campos omitidos são preenchidos com os valores atuais do registro antes da validação.
+      operationId: enrollmentsUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Matrículas]
+      summary: Atualizar matrícula (parcial)
+      operationId: enrollmentsPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EnrollmentUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    delete:
+      tags: [Matrículas]
+      summary: Excluir matrícula
+      operationId: enrollmentsDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /plans:
+    get:
+      tags: [Planos]
+      summary: Listar planos (paginado)
+      operationId: plansIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`PlanResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Planos]
+      summary: Criar plano
+      operationId: plansStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanWrite"
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /plans/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Planos]
+      summary: Obter plano
+      operationId: plansShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Planos]
+      summary: Atualizar plano
+      operationId: plansUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Planos]
+      summary: Atualizar plano (parcial)
+      operationId: plansPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    delete:
+      tags: [Planos]
+      summary: Excluir plano
+      operationId: plansDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /subscriptions:
+    get:
+      tags: [Assinaturas]
+      summary: Listar assinaturas (paginado)
+      description: Carrega relações `enrollment.student` e `plan` na listagem.
+      operationId: subscriptionsIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`SubscriptionResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /subscriptions/{id}/generate-next-invoice:
+    post:
+      tags: [Assinaturas]
+      summary: Gerar próxima fatura manualmente
+      operationId: subscriptionsGenerateNextInvoice
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Assinatura após geração (`SubscriptionResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /subscriptions/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Assinaturas]
+      summary: Obter assinatura
+      description: Inclui `enrollment.student`, `plan` e `invoices`.
+      operationId: subscriptionsShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Assinaturas]
+      summary: Atualizar assinatura (cancelar)
+      description: |
+        Corpo aceito atualmente: `status` = `canceled` (único valor permitido pela validação).
+      operationId: subscriptionsUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Assinaturas]
+      summary: Atualizar assinatura (cancelar)
+      operationId: subscriptionsPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /invoices:
+    get:
+      tags: [Faturas]
+      summary: Listar faturas (paginado)
+      operationId: invoicesIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`InvoiceResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /invoices/{invoice}/payments:
+    post:
+      tags: [Pagamentos]
+      summary: Criar pagamento para uma fatura
+      description: |
+        O gateway é definido pela configuração da empresa `invoice.payment_method` (sem corpo na requisição).
+      operationId: invoicePaymentsStore
+      security:
+        - sanctum: []
+      parameters:
+        - name: invoice
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "201":
+          description: Pagamento criado (`PaymentResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /invoices/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Faturas]
+      summary: Obter fatura
+      operationId: invoicesShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Faturas]
+      summary: Atualizar fatura (marcar paga)
+      description: |
+        Corpo aceito: `status` = `paid` (conforme `InvoiceUpdateRequest`).
+      operationId: invoicesUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Faturas]
+      summary: Atualizar fatura (marcar paga)
+      operationId: invoicesPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvoiceUpdate"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /payments/{payment}/sync-status:
+    post:
+      tags: [Pagamentos]
+      summary: Sincronizar status do pagamento no gateway
+      operationId: paymentsSyncStatus
+      security:
+        - sanctum: []
+      parameters:
+        - name: payment
+          in: path
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        "200":
+          description: Pagamento atualizado (`PaymentResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
+  /persons:
+    get:
+      tags: [Pessoas]
+      summary: Listar pessoas (paginado)
+      operationId: personsIndex
+      security:
+        - sanctum: []
+      parameters:
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
+      responses:
+        "200":
+          description: Coleção paginada (`PersonResource`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ResourcePaginator"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    post:
+      tags: [Pessoas]
+      summary: Criar pessoa (aluno ou professor)
+      operationId: personsStore
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonWrite"
+      responses:
+        "201":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+
+  /persons/{id}:
+    parameters:
+      - $ref: "#/components/parameters/ResourceId"
+    get:
+      tags: [Pessoas]
+      summary: Obter pessoa
+      operationId: personsShow
+      security:
+        - sanctum: []
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+    put:
+      tags: [Pessoas]
+      summary: Atualizar pessoa
+      operationId: personsUpdate
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Pessoas]
+      summary: Atualizar pessoa (parcial)
+      operationId: personsPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PersonWrite"
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JsonDataObject"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    delete:
+      tags: [Pessoas]
+      summary: Excluir pessoa
+      operationId: personsDestroy
+      security:
+        - sanctum: []
+      responses:
+        "204":
+          description: Sem corpo
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+
   /users:
     get:
       tags: [Usuários]
       summary: Listar usuários (paginado)
-      description: |
-        Aceita filtros e ordenação na query string (padrão Laravel), por exemplo:
-        `filters[name]=João`, `orderBy[id]=desc`, `per_page=15`.
       operationId: usersIndex
       security:
         - sanctum: []
       parameters:
-        - name: filters
-          in: query
-          description: Critérios de filtro (chave/valor por campo).
-          schema:
-            type: object
-            additionalProperties: true
-          style: form
-          explode: true
-        - name: orderBy
-          in: query
-          description: Ordenação por campo (`asc` ou `desc`).
-          schema:
-            type: object
-            additionalProperties:
-              type: string
-              enum: [asc, desc]
-          style: form
-          explode: true
-        - name: per_page
-          in: query
-          schema:
-            type: integer
-            minimum: 1
-            default: 15
+        - $ref: "#/components/parameters/QueryFilters"
+        - $ref: "#/components/parameters/QueryOrderBy"
+        - $ref: "#/components/parameters/QueryPerPage"
       responses:
         "200":
           description: Coleção paginada (`UserResource`)
@@ -103,7 +1056,6 @@ paths:
               $ref: "#/components/schemas/UserWrite"
       responses:
         "201":
-          description: Usuário criado
           content:
             application/json:
               schema:
@@ -128,7 +1080,6 @@ paths:
               $ref: "#/components/schemas/UserRegisterBody"
       responses:
         "201":
-          description: Usuário criado (sem token no recurso, salvo lógica adicional)
           content:
             application/json:
               schema:
@@ -136,7 +1087,7 @@ paths:
         "422":
           $ref: "#/components/responses/ErroValidacao"
         "500":
-          description: Erro interno do servidor (ex. credenciais ou falha não mapeada)
+          description: Erro interno (credenciais ou falha não mapeada)
 
   /users/login:
     post:
@@ -151,7 +1102,7 @@ paths:
               $ref: "#/components/schemas/UserLoginBody"
       responses:
         "201":
-          description: Autenticação bem-sucedida; o campo `data.token` contém o bearer token.
+          description: "O campo data.token contém o bearer token."
           content:
             application/json:
               schema:
@@ -172,7 +1123,6 @@ paths:
         - sanctum: []
       responses:
         "200":
-          description: Recurso encontrado
           content:
             application/json:
               schema:
@@ -185,8 +1135,7 @@ paths:
       tags: [Usuários]
       summary: Atualizar usuário
       description: |
-        O campo `password` é opcional na atualização; quando omitido ou nulo, a senha não é alterada
-        pelas regras de validação atuais.
+        `password` opcional; omitido ou nulo mantém a senha atual.
       operationId: usersUpdate
       security:
         - sanctum: []
@@ -198,7 +1147,30 @@ paths:
               $ref: "#/components/schemas/UserWriteUpdate"
       responses:
         "200":
-          description: Usuário atualizado
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserWrapped"
+        "401":
+          $ref: "#/components/responses/NaoAutorizado"
+        "404":
+          $ref: "#/components/responses/NaoEncontrado"
+        "422":
+          $ref: "#/components/responses/ErroValidacao"
+    patch:
+      tags: [Usuários]
+      summary: Atualizar usuário (parcial)
+      operationId: usersPatch
+      security:
+        - sanctum: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserWriteUpdate"
+      responses:
+        "200":
           content:
             application/json:
               schema:
@@ -217,7 +1189,7 @@ paths:
         - sanctum: []
       responses:
         "204":
-          description: Sem corpo na resposta
+          description: Sem corpo
         "401":
           $ref: "#/components/responses/NaoAutorizado"
         "404":
@@ -229,23 +1201,57 @@ components:
       type: http
       scheme: bearer
       bearerFormat: Token de acesso pessoal (Sanctum)
-      description: Token retornado em `POST /users/login` (campo `data.token` no JSON).
+      description: Token retornado em `POST /users/login` (`data.token`).
 
   parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: integer
+        minimum: 1
     UserId:
       name: id
       in: path
       required: true
-      description: Identificador do usuário (chave primária).
+      description: Identificador do usuário (PK).
       schema:
         type: integer
         minimum: 1
+    QueryFilters:
+      name: filters
+      in: query
+      description: Critérios de filtro (chave/valor por campo do modelo).
+      schema:
+        type: object
+        additionalProperties: true
+      style: form
+      explode: true
+    QueryOrderBy:
+      name: orderBy
+      in: query
+      description: Ordenação por campo (`asc` ou `desc`).
+      schema:
+        type: object
+        additionalProperties:
+          type: string
+          enum: [asc, desc]
+      style: form
+      explode: true
+    QueryPerPage:
+      name: per_page
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        default: 15
 
   responses:
     NaoAutorizado:
       description: Não autenticado (Sanctum)
     NaoEncontrado:
-      description: Recurso não encontrado ou empresa não resolvida pelo middleware
+      description: Recurso não encontrado ou empresa não resolvida
     ErroValidacao:
       description: Erro de validação do Laravel
       content:
@@ -254,6 +1260,321 @@ components:
             $ref: "#/components/schemas/LaravelValidationError"
 
   schemas:
+    TenantSettingsWrite:
+      type: object
+      required: [settings]
+      properties:
+        settings:
+          type: object
+          additionalProperties: true
+          description: Mapa de chave da configuração para valor (tipos conforme `type` de cada chave)
+
+    TenantSettingField:
+      type: object
+      required: [key, label, type, value, default_value]
+      properties:
+        key:
+          type: string
+        label:
+          type: string
+        description:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [string, boolean, number, select, json]
+        value:
+          nullable: true
+          description: Valor resolvido conforme `type`
+        default_value:
+          nullable: true
+          description: Valor padrão do schema
+        options:
+          type: array
+          items:
+            type: string
+          nullable: true
+
+    TenantSettingsGrouped:
+      type: object
+      additionalProperties:
+        type: array
+        items:
+          $ref: "#/components/schemas/TenantSettingField"
+
+    TenantSettingsWrapped:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/TenantSettingsGrouped"
+
+    JsonDataObject:
+      type: object
+      required: [data]
+      description: Resposta `JsonResource` com envelope `data`.
+      properties:
+        data:
+          type: object
+          additionalProperties: true
+
+    ResourcePaginator:
+      type: object
+      description: Coleção paginada Laravel (`Resource::collection` + paginator).
+      properties:
+        data:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        links:
+          type: object
+          properties:
+            first:
+              type: string
+              format: uri
+              nullable: true
+            last:
+              type: string
+              format: uri
+              nullable: true
+            prev:
+              type: string
+              format: uri
+              nullable: true
+            next:
+              type: string
+              format: uri
+              nullable: true
+        meta:
+          type: object
+          properties:
+            current_page:
+              type: integer
+            from:
+              type: integer
+              nullable: true
+            last_page:
+              type: integer
+            path:
+              type: string
+            per_page:
+              type: integer
+            to:
+              type: integer
+              nullable: true
+            total:
+              type: integer
+
+    ModalityWrite:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        description:
+          type: string
+          nullable: true
+          maxLength: 10000
+
+    ClassGroupWrite:
+      type: object
+      required: [name, modality_id, teacher_person_id, weekdays, starts_at, ends_at]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        modality_id:
+          type: integer
+        teacher_person_id:
+          type: integer
+        max_capacity:
+          type: integer
+          nullable: true
+          minimum: 1
+        weekdays:
+          type: array
+          minItems: 1
+          items:
+            type: integer
+            enum: [0, 1, 2, 3, 4, 5, 6]
+          description: Dias da semana (0 = domingo … 6 = sábado).
+        starts_at:
+          type: string
+          description: Horário `HH:mm` ou `HH:mm:ss`.
+          pattern: '^\d{2}:\d{2}(:\d{2})?$'
+        ends_at:
+          type: string
+          description: Deve ser posterior a `starts_at`.
+          pattern: '^\d{2}:\d{2}(:\d{2})?$'
+        plan_ids:
+          type: array
+          items:
+            type: integer
+
+    EnrollmentCreate:
+      type: object
+      required:
+        [student_person_id, class_group_id, starts_on, status, plan_id, billing_starts_on]
+      properties:
+        student_person_id:
+          type: integer
+        class_group_id:
+          type: integer
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [active, locked, cancelled]
+        plan_id:
+          type: integer
+        billing_starts_on:
+          type: string
+          format: date
+
+    EnrollmentUpdate:
+      type: object
+      properties:
+        student_person_id:
+          type: integer
+        class_group_id:
+          type: integer
+        starts_on:
+          type: string
+          format: date
+        ends_on:
+          type: string
+          format: date
+          nullable: true
+        status:
+          type: string
+          enum: [active, locked, cancelled]
+        plan_id:
+          type: integer
+          nullable: true
+        billing_starts_on:
+          type: string
+          format: date
+          nullable: true
+
+    PlanWrite:
+      type: object
+      required: [name, price, billing_cycle, billing_interval]
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        price:
+          type: number
+          minimum: 0
+        billing_cycle:
+          type: string
+          enum: [month, year]
+        billing_interval:
+          type: integer
+          minimum: 1
+
+    SubscriptionUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [canceled]
+
+    InvoiceUpdate:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [paid]
+
+    PaymentAttributes:
+      type: object
+      properties:
+        id:
+          type: integer
+        company_id:
+          type: integer
+        invoice_id:
+          type: integer
+        gateway:
+          type: string
+        gateway_payment_id:
+          type: string
+        status:
+          type: string
+          enum: [pending, approved, cancelled]
+        payment_url:
+          type: string
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          nullable: true
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    PaymentWrapped:
+      type: object
+      required: [data]
+      properties:
+        data:
+          $ref: "#/components/schemas/PaymentAttributes"
+
+    PersonWrite:
+      type: object
+      required: [full_name, birth_date, phone, email, status, profile]
+      properties:
+        full_name:
+          type: string
+          maxLength: 255
+        birth_date:
+          type: string
+          format: date
+          description: Data anterior a hoje.
+        cpf:
+          type: string
+          nullable: true
+          description: 11 dígitos numéricos, sem máscara.
+          pattern: "^[0-9]{11}$"
+        phone:
+          type: string
+          description: 10 a 13 dígitos numéricos.
+          pattern: "^[0-9]{10,13}$"
+        email:
+          type: string
+          format: email
+        guardian_person_id:
+          type: integer
+          nullable: true
+          description: Obrigatório para aluno menor de idade; omitido para professor.
+        status:
+          type: string
+          enum: [active, inactive]
+        notes:
+          type: string
+          nullable: true
+          maxLength: 10000
+        profile:
+          type: string
+          enum: [student, teacher]
+        modality_ids:
+          type: array
+          maxItems: 50
+          items:
+            type: integer
+          description: Apenas quando `profile` = `teacher`.
+
     UserAttributes:
       type: object
       required: [id, name, email, created_at, updated_at]
@@ -269,7 +1590,7 @@ components:
         token:
           type: string
           nullable: true
-          description: Presente após o login (token em texto plano do Sanctum).
+          description: Presente após o login (Sanctum).
         created_at:
           type: string
           format: date-time
@@ -280,9 +1601,6 @@ components:
           nullable: true
 
     UserWrapped:
-      description: |
-        Resposta de `JsonResource` com `$wrap = 'data'` (padrão no Laravel): o objeto retornado por
-        `UserResource::toArray()` fica dentro da chave `data`.
       type: object
       required: [data]
       properties:
@@ -363,7 +1681,6 @@ components:
           type: string
           nullable: true
           minLength: 8
-          description: Opcional; se omitido, mantém a senha atual.
 
     UserRegisterBody:
       type: object
@@ -408,7 +1725,6 @@ components:
 
     LaravelValidationError:
       type: object
-      description: Formato usual de validação do Laravel.
       properties:
         message:
           type: string

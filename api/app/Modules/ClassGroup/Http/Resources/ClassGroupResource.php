@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\ClassGroup\Http\Resources;
 
+use App\Modules\Enrollment\Http\Resources\EnrollmentResource;
 use App\Modules\Person\Http\Resources\PersonSummaryResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -73,6 +74,10 @@ class ClassGroupResource extends JsonResource
                     'billing_cycle' => $plan->billing_cycle->value,
                     'billing_interval' => $plan->billing_interval,
                 ])->values()->all(),
+            ),
+            'enrollments' => $this->whenLoaded(
+                'enrollments',
+                EnrollmentResource::collection($this->enrollments),
             ),
         ];
     }

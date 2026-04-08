@@ -8,8 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Modules\Core\Http\Traits\ControllerTrait;
 use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\Payment\Domain\Models\Payment;
+use App\Modules\Payment\Domain\Services\InvoicePaymentMethodResolver;
 use App\Modules\Payment\Domain\Services\PaymentService;
-use App\Modules\Payment\Http\Requests\PaymentStoreRequest;
 use App\Modules\Payment\Http\Resources\PaymentResource;
 use Illuminate\Http\JsonResponse;
 
@@ -19,15 +19,14 @@ class PaymentController extends Controller
 
     public function __construct(
         private readonly PaymentService $paymentService,
+        private readonly InvoicePaymentMethodResolver $invoicePaymentMethodResolver,
     ) {}
 
-    public function store(Invoice $invoice, PaymentStoreRequest $request): JsonResponse
+    public function store(Invoice $invoice): JsonResponse
     {
+        $gateway = $this->invoicePaymentMethodResolver->resolveForCompany((int) $invoice->company_id);
         $payment = $this->db()->transaction(
-            fn () => $this->paymentService->create(
-                $invoice,
-                (string) $request->validated('payment_method'),
-            )
+            fn () => $this->paymentService->create($invoice, $gateway)
         );
 
         return (new PaymentResource($payment))

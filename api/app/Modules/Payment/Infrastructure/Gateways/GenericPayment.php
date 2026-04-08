@@ -8,6 +8,7 @@ use App\Modules\Payment\Domain\Contracts\PaymentGatewayInterface;
 use App\Modules\Payment\Domain\DTOs\CreatePaymentData;
 use App\Modules\Payment\Domain\DTOs\PaymentResponse;
 use App\Modules\Payment\Domain\Enums\PaymentStatus;
+use App\Modules\Payment\Domain\Models\Payment;
 use Illuminate\Support\Facades\Cache;
 
 class GenericPayment implements PaymentGatewayInterface
@@ -32,7 +33,7 @@ class GenericPayment implements PaymentGatewayInterface
         );
     }
 
-    public function getPaymentStatus(string $paymentId): PaymentStatus
+    public function getPaymentStatus(string $paymentId, Payment $payment): PaymentStatus
     {
         $payload = Cache::get($this->cacheKey($paymentId));
         if (! is_array($payload)) {

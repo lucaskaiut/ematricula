@@ -1,0 +1,34 @@
+---
+description: Executar comandos do backend Laravel (api/) via Docker Compose, serviço app
+alwaysApply: true
+---
+
+# Backend Laravel e Docker
+
+O backend fica em `api/` e roda no container **`app`** definido em `docker-compose.yml` na raiz do repositório (`name: ematricula`).
+
+## Obrigatório
+
+- Ao **executar no terminal** qualquer comando que afete o Laravel em `api/` (PHP, Composer, Artisan, testes, migrações, seeders, pint, etc.), use o container **`app`**, a partir da **raiz do projeto** (onde está `docker-compose.yml`).
+- Não assuma PHP ou Composer instalados no host para esses comandos; prefira sempre o ambiente do container para manter extensões, `.env` e rede (`mysql`, `redis`) alinhados ao compose.
+
+## Padrão de comando
+
+```bash
+docker compose exec app <comando>
+```
+
+Exemplos:
+
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app php artisan test
+docker compose exec app composer install
+docker compose exec app composer require pacote/exemplo
+```
+
+## Observações
+
+- Se os serviços não estiverem no ar, suba com `docker compose up -d` na raiz antes de `exec`.
+- Para comandos pontuais sem depender de um container já em execução, pode-se usar `docker compose run --rm app <comando>` (mesmo serviço `app`).
+- O serviço **`horizon`** também usa a mesma imagem/contexto de `api/`, mas para CLI interativa e manutenção use **`app`**.

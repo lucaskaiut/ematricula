@@ -8,6 +8,7 @@ use App\Modules\Modality\Http\Controllers\ModalityController;
 use App\Modules\Payment\Http\Controllers\PaymentController;
 use App\Modules\Person\Http\Controllers\PersonController;
 use App\Modules\Plan\Http\Controllers\PlanController;
+use App\Modules\Setting\Http\Controllers\TenantSettingsController;
 use App\Modules\Subscription\Http\Controllers\SubscriptionController;
 use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
@@ -76,6 +77,10 @@ Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function ()
         Route::put('/{id}', [UserController::class, 'update']);
         Route::patch('/{id}', [UserController::class, 'update']);
         Route::delete('/{id}', [UserController::class, 'destroy']);
+    });
+    Route::group(['prefix' => 'settings'], function () {
+        Route::get('/', [TenantSettingsController::class, 'index']);
+        Route::put('/', [TenantSettingsController::class, 'update']);
     });
 });
 

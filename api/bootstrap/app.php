@@ -19,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('billing:generate-recurring-invoices')->dailyAt('01:00');
         $schedule->command('payments:sync-invoice-statuses')->everyFiveMinutes()->withoutOverlapping();
+        $schedule->command('invoices:send-due-reminders')->dailyAt('08:00')->withoutOverlapping();
+        $schedule->command('invoices:send-overdue-reminders')->dailyAt('09:00')->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

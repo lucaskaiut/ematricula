@@ -16,11 +16,17 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $this->call(SettingsSeeder::class);
+
         $company = Company::query()->first();
 
-        if (!$company) {
+        if (! $company) {
             throw new \RuntimeException('Nenhuma company encontrada. Crie uma company antes de rodar o seed de usuários.');
         }
+
+        app('company')->registerCompany($company);
+
+        $this->call(AcademicDemoSeeder::class);
 
         User::factory()
             ->count(50)

@@ -7,10 +7,11 @@ namespace App\Modules\Payment\Domain\Contracts;
 use App\Modules\Payment\Domain\DTOs\CreatePaymentData;
 use App\Modules\Payment\Domain\DTOs\PaymentResponse;
 use App\Modules\Payment\Domain\Enums\PaymentStatus;
+use App\Modules\Payment\Domain\Models\Payment;
 
 interface PaymentGatewayInterface
 {
     public function createPayment(CreatePaymentData $data): PaymentResponse;
 
-    public function getPaymentStatus(string $paymentId): PaymentStatus;
+    public function getPaymentStatus(string $paymentId, Payment $payment): PaymentStatus;
 }
