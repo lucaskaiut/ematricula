@@ -4,18 +4,19 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
-use App\Modules\Company\Domain\Models\Company;
+use App\Modules\Acl\Domain\Models\Role;
+use App\Modules\Core\Domain\Traits\HasCompany;
+use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Sanctum\HasApiTokens;
-use App\Modules\Core\Domain\Traits\HasCompany;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, HasApiTokens, HasCompany;
+    /** @use HasFactory<UserFactory> */
+    use HasApiTokens, HasCompany, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -24,6 +25,7 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'company_id',
+        'role_id',
         'name',
         'email',
         'password',
@@ -50,5 +52,40 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function role(): BelongsTo
+    {
+        return $this->belongsTo(Role::class);
+    }
+
+    public function hasPermission(string $permission): bool
+    {
+        return $this->role?->hasPermission($permission) ?? false;
+    }
+
+    /**
+     * @param  list<string>  $permissions
+     */
+    public function hasAnyPermission(array $permissions): bool
+    {
+        foreach ($permissions as $permission) {
+            if ($this->hasPermission($permission)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    public function permissionKeys(): array
+    {
+        /** @var list<string>|null $list */
+        $list = $this->role?->permissions;
+
+        return is_array($list) ? array_values($list) : [];
     }
 }

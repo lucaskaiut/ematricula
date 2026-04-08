@@ -15,8 +15,11 @@ trait HasCompany
 
     protected static function bootHasCompany(): void
     {
-        static::addGlobalScope(new CompanyScope());
+        static::addGlobalScope(new CompanyScope);
         static::creating(function (Model $model) {
+            if ($model->getAttribute('company_id') !== null) {
+                return;
+            }
             $model->company_id = app('company')->company()?->id;
         });
     }

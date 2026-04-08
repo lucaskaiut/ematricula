@@ -29,6 +29,11 @@ class UserRequest extends FormRequest
                 'email',
                 Rule::unique('users', 'email')->ignore($userId),
             ],
+            'role_id' => [
+                'required',
+                'integer',
+                Rule::exists('roles', 'id')->where('company_id', $this->user()?->company_id),
+            ],
             'password' => [
                 $isUpdate ? 'nullable' : 'required',
                 'string',

@@ -151,6 +151,7 @@ class AsaasPayment implements PaymentGatewayInterface
             'phone' => $student->phone !== '' ? $student->phone : null,
             'cpfCnpj' => $student->cpf !== null && $student->cpf !== '' ? $student->cpf : null,
             'externalReference' => $externalRef,
+            'notificationDisabled' => true,
         ], static fn (mixed $v) => $v !== null && $v !== '');
 
         $createResponse = $this->http($baseUrl, $apiKey)->post('/customers', $createBody);

@@ -4,13 +4,22 @@ import { cache } from "react";
 
 const MAX_AGE = 60 * 60 * 24 * 7;
 
-export type User = {
+export type AuthedUserRole = {
+  id: number;
+  name: string;
+};
+
+export type AuthedUser = {
   id: string;
   name: string;
   email: string;
   created_at: string;
   updated_at: string;
+  role?: AuthedUserRole | null;
+  permissions: string[];
 };
+
+export type User = AuthedUser;
 
 export type LoginResponse = { success: boolean; error?: string };
 export type LoginRequest = { email: string; password: string };
@@ -82,6 +91,13 @@ export async function logoutAction() {
   redirect("/sign-in");
 }
 
+function normalizePermissions(raw: unknown): string[] {
+  if (!Array.isArray(raw)) {
+    return [];
+  }
+  return raw.filter((p): p is string => typeof p === "string");
+}
+
 async function fetchUserFromServer(): Promise<User | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get("auth_token")?.value;
@@ -99,17 +115,38 @@ async function fetchUserFromServer(): Promise<User | null> {
     }
 
     const json = await res.json();
-    const user = (json?.data ?? json) as Partial<User> | null;
+    const user = (json?.data ?? json) as Partial<User> & {
+      role?: AuthedUserRole | null;
+      permissions?: unknown;
+    } | null;
     if (!user) return null;
 
     if (typeof user?.name !== "string" || typeof user?.email !== "string") {
       return null;
     }
 
+    const role =
+      user.role &&
+      typeof user.role === "object" &&
+      typeof (user.role as AuthedUserRole).id === "number" &&
+      typeof (user.role as AuthedUserRole).name === "string"
+        ? {
+            id: (user.role as AuthedUserRole).id,
+            name: (user.role as AuthedUserRole).name,
+          }
+        : null;
+
     return {
-      ...(user as Omit<User, "id">),
       id: user.id !== undefined ? String(user.id) : "",
-    } as User;
+      name: user.name,
+      email: user.email,
+      created_at:
+        typeof user.created_at === "string" ? user.created_at : "",
+      updated_at:
+        typeof user.updated_at === "string" ? user.updated_at : "",
+      role,
+      permissions: normalizePermissions(user.permissions),
+    };
   } catch {
     return null;
   }

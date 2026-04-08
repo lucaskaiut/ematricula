@@ -28,7 +28,12 @@ export default async function EditUserPage({ params }: PageProps) {
     <UserForm
       mode="edit"
       userId={user.id}
-      defaultValues={{ name: user.name, email: user.email, password: '' }}
+      defaultValues={{
+        name: user.name,
+        email: user.email,
+        password: "",
+        role_id: user.role?.id ?? 0,
+      }}
     />
   );
 }

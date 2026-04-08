@@ -16,6 +16,7 @@ const passwordStrong = z
 export const userFormValuesSchema = z.object({
   name: nameSchema,
   email: emailSchema,
+  role_id: z.number().int().min(1, "Selecione um perfil"),
   password: z.string(),
 });
 

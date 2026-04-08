@@ -1,10 +1,33 @@
+export type RoleSummary = {
+  id: number;
+  name: string;
+};
+
 export type UserAttributes = {
   id: number;
   name: string;
   email: string;
   token?: string | null;
+  role?: RoleSummary | null;
+  permissions?: string[];
   created_at?: string | null;
   updated_at?: string | null;
+};
+
+export type RoleAttributes = {
+  id: number;
+  company_id: number;
+  name: string;
+  description: string | null;
+  permissions: string[];
+  created_at?: string | null;
+  updated_at?: string | null;
+};
+
+export type PermissionDefinition = {
+  key: string;
+  label: string;
+  category: string;
 };
 
 export type UserWrapped = {

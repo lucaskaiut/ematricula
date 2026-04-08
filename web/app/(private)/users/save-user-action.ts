@@ -21,7 +21,7 @@ function flattenZodFieldErrors(issues: ZodIssue[]): Partial<Record<keyof UserFor
   const out: Partial<Record<keyof UserFormValues, string>> = {};
   for (const issue of issues) {
     const key = issue.path[0];
-    if (key === 'name' || key === 'email' || key === 'password') {
+    if (key === "name" || key === "email" || key === "password" || key === "role_id") {
       if (!out[key]) out[key] = issue.message;
     }
   }
@@ -33,9 +33,10 @@ function mapApiValidationToFields(
 ): Partial<Record<keyof UserFormValues, string>> {
   if (!errors) return {};
   const map: Record<string, keyof UserFormValues> = {
-    name: 'name',
-    email: 'email',
-    password: 'password',
+    name: "name",
+    email: "email",
+    password: "password",
+    role_id: "role_id",
   };
   const out: Partial<Record<keyof UserFormValues, string>> = {};
   for (const [apiKey, messages] of Object.entries(errors)) {
@@ -59,18 +60,22 @@ export async function saveUserAction(input: {
     };
   }
 
-  const { name, email, password } = parsed.data;
+  const { name, email, password, role_id: roleId } = parsed.data;
 
   try {
-    if (input.mode === 'create') {
-      const api = new Api('/users');
-      await api.post({ name, email, password });
+    if (input.mode === "create") {
+      const api = new Api("/users");
+      await api.post({ name, email, password, role_id: roleId });
     } else {
       if (input.userId === undefined) {
-        return { success: false, message: 'Identificador do usuário ausente.' };
+        return { success: false, message: "Identificador do usuário ausente." };
       }
       const api = new Api(`/users/${input.userId}`);
-      const body: { name: string; email: string; password?: string } = { name, email };
+      const body: { name: string; email: string; role_id: number; password?: string } = {
+        name,
+        email,
+        role_id: roleId,
+      };
       if (password.length > 0) body.password = password;
       await api.patch(body);
     }

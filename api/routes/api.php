@@ -1,5 +1,7 @@
 <?php
 
+use App\Modules\Acl\Http\Controllers\AclPermissionController;
+use App\Modules\Acl\Http\Controllers\RoleController;
 use App\Modules\ClassGroup\Http\Controllers\ClassGroupController;
 use App\Modules\Company\Http\Middlewares\InitializeCompany;
 use App\Modules\Enrollment\Http\Controllers\EnrollmentController;
@@ -15,72 +17,117 @@ use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function () {
     Route::get('user/me', [UserController::class, 'me']);
-    Route::group(['prefix' => 'modalities'], function () {
-        Route::get('/', [ModalityController::class, 'index']);
-        Route::get('/{id}', [ModalityController::class, 'show']);
-        Route::post('/', [ModalityController::class, 'store']);
-        Route::put('/{id}', [ModalityController::class, 'update']);
-        Route::patch('/{id}', [ModalityController::class, 'update']);
-        Route::delete('/{id}', [ModalityController::class, 'destroy']);
+
+    Route::middleware('permission:roles.read|roles.write')->group(function () {
+        Route::get('acl/permissions', [AclPermissionController::class, 'index']);
     });
-    Route::group(['prefix' => 'class-groups'], function () {
-        Route::get('/', [ClassGroupController::class, 'index']);
-        Route::get('/{id}', [ClassGroupController::class, 'show']);
-        Route::post('/', [ClassGroupController::class, 'store']);
-        Route::put('/{id}', [ClassGroupController::class, 'update']);
-        Route::patch('/{id}', [ClassGroupController::class, 'update']);
-        Route::delete('/{id}', [ClassGroupController::class, 'destroy']);
+
+    Route::middleware('permission:roles.read')->group(function () {
+        Route::get('roles', [RoleController::class, 'index']);
+        Route::get('roles/{id}', [RoleController::class, 'show']);
     });
-    Route::group(['prefix' => 'enrollments'], function () {
-        Route::get('/', [EnrollmentController::class, 'index']);
-        Route::get('/{id}', [EnrollmentController::class, 'show']);
-        Route::post('/', [EnrollmentController::class, 'store']);
-        Route::put('/{id}', [EnrollmentController::class, 'update']);
-        Route::patch('/{id}', [EnrollmentController::class, 'update']);
-        Route::delete('/{id}', [EnrollmentController::class, 'destroy']);
+    Route::middleware('permission:roles.write')->group(function () {
+        Route::post('roles', [RoleController::class, 'store']);
+        Route::put('roles/{id}', [RoleController::class, 'update']);
+        Route::patch('roles/{id}', [RoleController::class, 'update']);
+        Route::delete('roles/{id}', [RoleController::class, 'destroy']);
     });
-    Route::group(['prefix' => 'plans'], function () {
-        Route::get('/', [PlanController::class, 'index']);
-        Route::get('/{id}', [PlanController::class, 'show']);
-        Route::post('/', [PlanController::class, 'store']);
-        Route::put('/{id}', [PlanController::class, 'update']);
-        Route::patch('/{id}', [PlanController::class, 'update']);
-        Route::delete('/{id}', [PlanController::class, 'destroy']);
+
+    Route::middleware('permission:users.read')->group(function () {
+        Route::get('users', [UserController::class, 'index']);
+        Route::get('users/{id}', [UserController::class, 'show']);
     });
-    Route::group(['prefix' => 'subscriptions'], function () {
-        Route::get('/', [SubscriptionController::class, 'index']);
-        Route::post('/{id}/generate-next-invoice', [SubscriptionController::class, 'generateNextInvoice']);
-        Route::get('/{id}', [SubscriptionController::class, 'show']);
-        Route::put('/{id}', [SubscriptionController::class, 'update']);
-        Route::patch('/{id}', [SubscriptionController::class, 'update']);
+    Route::middleware('permission:users.write')->group(function () {
+        Route::post('users', [UserController::class, 'store']);
+        Route::put('users/{id}', [UserController::class, 'update']);
+        Route::patch('users/{id}', [UserController::class, 'update']);
+        Route::delete('users/{id}', [UserController::class, 'destroy']);
     });
-    Route::group(['prefix' => 'invoices'], function () {
-        Route::get('/', [InvoiceController::class, 'index']);
-        Route::get('/{id}', [InvoiceController::class, 'show']);
-        Route::post('/{invoice}/payments', [PaymentController::class, 'store']);
-        Route::put('/{id}', [InvoiceController::class, 'update']);
-        Route::patch('/{id}', [InvoiceController::class, 'update']);
+
+    Route::middleware('permission:settings.read')->group(function () {
+        Route::get('settings', [TenantSettingsController::class, 'index']);
     });
-    Route::post('payments/{payment}/sync-status', [PaymentController::class, 'syncStatus']);
-    Route::group(['prefix' => 'persons'], function () {
-        Route::get('/', [PersonController::class, 'index']);
-        Route::get('/{id}', [PersonController::class, 'show']);
-        Route::post('/', [PersonController::class, 'store']);
-        Route::put('/{id}', [PersonController::class, 'update']);
-        Route::patch('/{id}', [PersonController::class, 'update']);
-        Route::delete('/{id}', [PersonController::class, 'destroy']);
+    Route::middleware('permission:settings.write')->group(function () {
+        Route::put('settings', [TenantSettingsController::class, 'update']);
     });
-    Route::group(['prefix' => 'users'], function () {
-        Route::get('/', [UserController::class, 'index']);
-        Route::get('/{id}', [UserController::class, 'show']);
-        Route::post('/', [UserController::class, 'store']);
-        Route::put('/{id}', [UserController::class, 'update']);
-        Route::patch('/{id}', [UserController::class, 'update']);
-        Route::delete('/{id}', [UserController::class, 'destroy']);
+
+    Route::middleware('permission:modalities.read')->group(function () {
+        Route::get('modalities', [ModalityController::class, 'index']);
+        Route::get('modalities/{id}', [ModalityController::class, 'show']);
     });
-    Route::group(['prefix' => 'settings'], function () {
-        Route::get('/', [TenantSettingsController::class, 'index']);
-        Route::put('/', [TenantSettingsController::class, 'update']);
+    Route::middleware('permission:modalities.write')->group(function () {
+        Route::post('modalities', [ModalityController::class, 'store']);
+        Route::put('modalities/{id}', [ModalityController::class, 'update']);
+        Route::patch('modalities/{id}', [ModalityController::class, 'update']);
+        Route::delete('modalities/{id}', [ModalityController::class, 'destroy']);
+    });
+
+    Route::middleware('permission:class_groups.read')->group(function () {
+        Route::get('class-groups', [ClassGroupController::class, 'index']);
+        Route::get('class-groups/{id}', [ClassGroupController::class, 'show']);
+    });
+    Route::middleware('permission:class_groups.write')->group(function () {
+        Route::post('class-groups', [ClassGroupController::class, 'store']);
+        Route::put('class-groups/{id}', [ClassGroupController::class, 'update']);
+        Route::patch('class-groups/{id}', [ClassGroupController::class, 'update']);
+        Route::delete('class-groups/{id}', [ClassGroupController::class, 'destroy']);
+    });
+
+    Route::middleware('permission:enrollments.read')->group(function () {
+        Route::get('enrollments', [EnrollmentController::class, 'index']);
+        Route::get('enrollments/{id}', [EnrollmentController::class, 'show']);
+    });
+    Route::middleware('permission:enrollments.write')->group(function () {
+        Route::post('enrollments', [EnrollmentController::class, 'store']);
+        Route::put('enrollments/{id}', [EnrollmentController::class, 'update']);
+        Route::patch('enrollments/{id}', [EnrollmentController::class, 'update']);
+        Route::delete('enrollments/{id}', [EnrollmentController::class, 'destroy']);
+    });
+
+    Route::middleware('permission:plans.read')->group(function () {
+        Route::get('plans', [PlanController::class, 'index']);
+        Route::get('plans/{id}', [PlanController::class, 'show']);
+    });
+    Route::middleware('permission:plans.write')->group(function () {
+        Route::post('plans', [PlanController::class, 'store']);
+        Route::put('plans/{id}', [PlanController::class, 'update']);
+        Route::patch('plans/{id}', [PlanController::class, 'update']);
+        Route::delete('plans/{id}', [PlanController::class, 'destroy']);
+    });
+
+    Route::middleware('permission:subscriptions.read')->group(function () {
+        Route::get('subscriptions', [SubscriptionController::class, 'index']);
+        Route::get('subscriptions/{id}', [SubscriptionController::class, 'show']);
+    });
+    Route::middleware('permission:subscriptions.write')->group(function () {
+        Route::post('subscriptions/{id}/generate-next-invoice', [SubscriptionController::class, 'generateNextInvoice']);
+        Route::put('subscriptions/{id}', [SubscriptionController::class, 'update']);
+        Route::patch('subscriptions/{id}', [SubscriptionController::class, 'update']);
+    });
+
+    Route::middleware('permission:invoices.read')->group(function () {
+        Route::get('invoices', [InvoiceController::class, 'index']);
+        Route::get('invoices/{id}', [InvoiceController::class, 'show']);
+    });
+    Route::middleware('permission:invoices.write')->group(function () {
+        Route::post('invoices/{invoice}/payments', [PaymentController::class, 'store']);
+        Route::put('invoices/{id}', [InvoiceController::class, 'update']);
+        Route::patch('invoices/{id}', [InvoiceController::class, 'update']);
+    });
+
+    Route::middleware('permission:payments.sync')->group(function () {
+        Route::post('payments/{payment}/sync-status', [PaymentController::class, 'syncStatus']);
+    });
+
+    Route::middleware('permission:persons.read')->group(function () {
+        Route::get('persons', [PersonController::class, 'index']);
+        Route::get('persons/{id}', [PersonController::class, 'show']);
+    });
+    Route::middleware('permission:persons.write')->group(function () {
+        Route::post('persons', [PersonController::class, 'store']);
+        Route::put('persons/{id}', [PersonController::class, 'update']);
+        Route::patch('persons/{id}', [PersonController::class, 'update']);
+        Route::delete('persons/{id}', [PersonController::class, 'destroy']);
     });
 });
 

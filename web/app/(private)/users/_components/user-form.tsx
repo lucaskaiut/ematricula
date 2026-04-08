@@ -1,19 +1,23 @@
-'use client';
+"use client";
 
-import { zodResolver } from '@hookform/resolvers/zod';
-import Link from 'next/link';
-import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useEffect, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
 
-import type { UserFormMode, UserFormValues } from '@/lib/validations/user-form';
-import { userFormSchemaCreate, userFormSchemaEdit } from '@/lib/validations/user-form';
+import type { UserFormMode, UserFormValues } from "@/lib/validations/user-form";
+import { userFormSchemaCreate, userFormSchemaEdit } from "@/lib/validations/user-form";
+import type { RoleAttributes } from "@/types/api";
 
-import { saveUserAction, type SaveUserActionResult } from '../save-user-action';
+import { saveUserAction, type SaveUserActionResult } from "../save-user-action";
 
 export type UserFormProps = {
   mode: UserFormMode;
   userId?: number;
-  defaultValues: Pick<UserFormValues, 'name' | 'email'> & { password?: string };
+  defaultValues: Pick<UserFormValues, "name" | "email" | "role_id"> & {
+    password?: string;
+  };
 };
 
 const inputClass =
@@ -29,15 +33,35 @@ export function UserForm({ mode, userId, defaultValues }: UserFormProps) {
     defaultValues: {
       name: defaultValues.name,
       email: defaultValues.email,
-      password: defaultValues.password ?? '',
+      role_id: defaultValues.role_id,
+      password: defaultValues.password ?? "",
     },
   });
+
+  const { data: rolesRes } = useQuery({
+    queryKey: ["roles-select"],
+    queryFn: async () => {
+      const res = await fetch("/api/roles?per_page=100");
+      if (!res.ok) throw new Error("Falha ao carregar perfis");
+      return (await res.json()) as { data: RoleAttributes[] };
+    },
+  });
+
+  useEffect(() => {
+    if (mode !== "create") return;
+    const rows = rolesRes?.data;
+    if (!rows?.length) return;
+    const current = form.getValues("role_id");
+    if (!current || current < 1) {
+      form.setValue("role_id", rows[0].id, { shouldValidate: true });
+    }
+  }, [mode, rolesRes, form]);
 
   const [pending, startTransition] = useTransition();
 
   const applyServerErrors = (result: Extract<SaveUserActionResult, { success: false }>) => {
     if (result.fieldErrors) {
-      for (const key of ['name', 'email', 'password'] as const) {
+      for (const key of ["name", "email", "password", "role_id"] as const) {
         const msg = result.fieldErrors[key];
         if (msg) form.setError(key, { message: msg });
       }
@@ -116,6 +140,36 @@ export function UserForm({ mode, userId, defaultValues }: UserFormProps) {
               {form.formState.errors.name ? (
                 <p id="user-name-error" className="mt-1.5 text-sm text-red-600 dark:text-red-400" role="alert">
                   {form.formState.errors.name.message}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="min-w-0">
+              <label htmlFor="user-role" className={labelClass}>
+                Perfil de acesso
+              </label>
+              <select
+                id="user-role"
+                className={inputClass}
+                aria-invalid={!!form.formState.errors.role_id}
+                aria-describedby={
+                  form.formState.errors.role_id ? "user-role-error" : undefined
+                }
+                {...form.register("role_id", { valueAsNumber: true })}
+              >
+                {rolesRes?.data?.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </select>
+              {form.formState.errors.role_id ? (
+                <p
+                  id="user-role-error"
+                  className="mt-1.5 text-sm text-red-600 dark:text-red-400"
+                  role="alert"
+                >
+                  {form.formState.errors.role_id.message}
                 </p>
               ) : null}
             </div>

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ForceJsonResponse;
+use App\Modules\Acl\Http\Middleware\EnsureUserHasPermission;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -15,6 +16,9 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->appendToGroup('api', ForceJsonResponse::class);
+        $middleware->alias([
+            'permission' => EnsureUserHasPermission::class,
+        ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         $schedule->command('billing:generate-recurring-invoices')->dailyAt('01:00');

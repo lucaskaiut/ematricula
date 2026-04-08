@@ -92,18 +92,26 @@ export default function UserPage() {
   const columns = useMemo(
     () => [
       { key: 'id', title: '#', priority: 0, sortable: true, width: 60 },
-      { key: 'name', title: 'Nome', priority: 1, sortable: true, width: 350 },
+      { key: 'name', title: 'Nome', priority: 1, sortable: true, width: 280 },
+      {
+        key: 'role',
+        title: 'Perfil',
+        priority: 2,
+        sortable: false,
+        width: 160,
+        render: (row: UserAttributes) => row.role?.name ?? '—',
+      },
       {
         key: 'email',
         title: 'E-mail',
-        priority: 2,
+        priority: 3,
         sortable: true,
-        width: 300,
+        width: 280,
       },
       {
         key: 'created_at',
         title: 'Criado em',
-        priority: 3,
+        priority: 4,
         sortable: true,
         format: (value: unknown) => formatDateTime(value),
         width: 200,
@@ -111,7 +119,7 @@ export default function UserPage() {
       {
         key: 'updated_at',
         title: 'Atualizado em',
-        priority: 4,
+        priority: 5,
         sortable: true,
         format: (value: unknown) => formatDateTime(value),
         width: 200,

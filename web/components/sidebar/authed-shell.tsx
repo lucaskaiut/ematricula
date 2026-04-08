@@ -6,6 +6,7 @@ import {
   SidebarProvider,
   useSidebar,
 } from "@/components/sidebar/sidebar-provider";
+import { RouteAccessGuard } from "@/components/acl/route-access-guard";
 import { Sidebar } from "@/components/sidebar/sidebar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -44,7 +45,9 @@ function ShellInner({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </header>
-          <main className="flex min-h-0 flex-1 flex-col">{children}</main>
+          <main className="flex min-h-0 flex-1 flex-col">
+            <RouteAccessGuard>{children}</RouteAccessGuard>
+          </main>
         </div>
       </div>
 

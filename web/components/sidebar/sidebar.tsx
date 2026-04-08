@@ -7,6 +7,7 @@ import { cn } from "@/lib/cn";
 import { SIDEBAR_ITEMS } from "@/components/sidebar/menu-items";
 import { useSidebar } from "@/components/sidebar/sidebar-provider";
 import { useAuth } from "@/contexts/AuthContext";
+import { userHasAnyPermission } from "@/lib/acl/can";
 
 function isActivePath(
   pathname: string,
@@ -27,7 +28,9 @@ export function Sidebar() {
   const nav = (
     <nav className="px-2 py-2">
       <ul className="space-y-1">
-        {SIDEBAR_ITEMS.map((item) => {
+        {SIDEBAR_ITEMS.filter((item) =>
+          userHasAnyPermission(user, item.anyOf),
+        ).map((item) => {
           const active = isActivePath(pathname, item.href, item.match);
           const Icon = item.icon;
           return (
