@@ -270,4 +270,5 @@ export type PersonAttributes = {
   creator?: PersonUserRef | null;
   updater?: PersonUserRef | null;
   modalities?: PersonModalityRef[];
+  enrollments?: EnrollmentAttributes[];
 };

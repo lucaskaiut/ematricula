@@ -32,6 +32,7 @@ export default async function EditAlunoPage({ params }: PageProps) {
       profile="student"
       listPath="/alunos"
       personId={person.id}
+      enrollments={person.enrollments ?? []}
       labels={{
         segment: 'Alunos',
         newTitle: 'Novo aluno',

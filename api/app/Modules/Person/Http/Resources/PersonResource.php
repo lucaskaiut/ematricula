@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Modules\Person\Http\Resources;
 
+use App\Modules\Enrollment\Http\Resources\EnrollmentResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -62,6 +63,10 @@ class PersonResource extends JsonResource
                     'id' => $m->id,
                     'name' => $m->name,
                 ])->values()->all(),
+            ),
+            'enrollments' => $this->whenLoaded(
+                'enrollments',
+                fn () => EnrollmentResource::collection($this->enrollments)->resolve(),
             ),
         ];
     }

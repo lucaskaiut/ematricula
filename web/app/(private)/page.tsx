@@ -1,4 +1,5 @@
 import { HomeCalendarDashboard } from "@/components/home/home-calendar-dashboard";
+import { HomeFinanceDashboard } from "@/components/home/home-finance-dashboard";
 
 export default async function HomePage() {
   return (
@@ -10,6 +11,7 @@ export default async function HomePage() {
         Bem-vindo ao eMatrícula. Abaixo está a visão geral das aulas por turma;
         use o menu para alunos, professores, modalidades e demais cadastros.
       </p>
+      <HomeFinanceDashboard />
       <HomeCalendarDashboard />
     </div>
   );

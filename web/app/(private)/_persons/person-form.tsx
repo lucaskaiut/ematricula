@@ -11,7 +11,7 @@ import { maskBrazilianCpf, maskBrazilianPhone } from '@/lib/masks/br-cpf-phone';
 import { personIsMinorFromIsoDate } from '@/lib/person-age';
 import type { PersonFormMode, PersonFormValues } from '@/lib/validations/person-form';
 import { personFormValuesSchema } from '@/lib/validations/person-form';
-import type { PersonAttributes, PersonProfile } from '@/types/api';
+import type { EnrollmentAttributes, PersonAttributes, PersonProfile } from '@/types/api';
 
 import { listGuardianOptions, listModalitiesOptions } from './actions';
 import { savePersonAction, type SavePersonActionResult } from './save-person-action';
@@ -23,6 +23,7 @@ export type PersonFormProps = {
   listPath: string;
   labels: { segment: string; newTitle: string; editTitle: string; subtitleCreate: string; subtitleEdit: string };
   personId?: number;
+  enrollments?: EnrollmentAttributes[];
   defaultValues: {
     full_name: string;
     birth_date: string;
@@ -41,12 +42,27 @@ const inputClass =
 
 const labelClass = 'text-sm font-medium text-secondary';
 
+function formatDateOnly(value: unknown) {
+  if (typeof value !== 'string' || !value) return '—';
+  const d = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(d.getTime())) return value;
+  return new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short' }).format(d);
+}
+
+function enrollmentStatusPt(s: EnrollmentAttributes['status']) {
+  if (s === 'active') return 'Ativa';
+  if (s === 'locked') return 'Trancada';
+  if (s === 'cancelled') return 'Cancelada';
+  return s;
+}
+
 export function PersonForm({
   mode,
   profile,
   listPath,
   labels,
   personId,
+  enrollments,
   defaultValues,
 }: PersonFormProps) {
   const schema = useMemo(() => personFormValuesSchema(profile), [profile]);
@@ -151,6 +167,11 @@ export function PersonForm({
 
   const title = mode === 'create' ? labels.newTitle : labels.editTitle;
   const subtitle = mode === 'create' ? labels.subtitleCreate : labels.subtitleEdit;
+
+  const sortedEnrollments = useMemo(() => {
+    const rows = enrollments ?? [];
+    return [...rows].sort((a, b) => b.id - a.id);
+  }, [enrollments]);
 
   return (
     <div className="min-h-[calc(100dvh-8rem)] w-full min-w-0 px-4 py-6 sm:px-6 sm:py-10">
@@ -401,6 +422,62 @@ export function PersonForm({
             </div>
           </form>
         </div>
+
+        {mode === 'edit' && profile === 'student' ? (
+          <section className="mt-6 w-full min-w-0 rounded-card border border-border bg-card p-5 shadow-card sm:mt-8 sm:p-8">
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight text-foreground">
+                  Matrículas
+                </h2>
+                <p className="mt-1 text-sm text-secondary">
+                  Acesse rapidamente as matrículas vinculadas a este aluno.
+                </p>
+              </div>
+              {personId !== undefined ? (
+                <Link
+                  href={`/matriculas/new?student_person_id=${personId}`}
+                  className="inline-flex min-h-10 items-center justify-center rounded-control bg-gradient-to-br from-primary to-primary-end px-4 text-sm font-semibold text-primary-foreground shadow-cta transition-[transform,opacity] hover:opacity-95 active:scale-[0.99]"
+                >
+                  Nova matrícula
+                </Link>
+              ) : null}
+            </div>
+
+            {sortedEnrollments.length === 0 ? (
+              <div className="mt-4 rounded-control border border-dashed border-border bg-muted/20 px-4 py-4 text-sm text-secondary">
+                Nenhuma matrícula encontrada para este aluno.
+              </div>
+            ) : (
+              <ul className="mt-4 divide-y divide-border">
+                {sortedEnrollments.map((e) => (
+                  <li key={e.id} className="flex flex-col gap-2 py-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-foreground">
+                        {e.class_group?.name ?? `Turma #${e.class_group_id}`}
+                      </p>
+                      <p className="mt-1 text-sm text-secondary">
+                        <span className="font-medium text-secondary">Status:</span> {enrollmentStatusPt(e.status)}{' '}
+                        <span className="mx-1.5 text-muted">•</span>
+                        <span className="font-medium text-secondary">Início:</span> {formatDateOnly(e.starts_on)}{' '}
+                        <span className="mx-1.5 text-muted">•</span>
+                        <span className="font-medium text-secondary">Término:</span> {formatDateOnly(e.ends_on)}
+                      </p>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/matriculas/${e.id}/edit`}
+                        className="inline-flex min-h-10 items-center justify-center rounded-control px-3.5 text-sm font-medium text-secondary ring-1 ring-border transition-colors hover:bg-accent"
+                      >
+                        Abrir matrícula
+                      </Link>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+        ) : null}
       </div>
     </div>
   );

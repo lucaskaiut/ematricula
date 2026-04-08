@@ -43,7 +43,14 @@ class PersonController extends Controller
         $model = $this->service()->findOrFail(
             $id,
             ['*'],
-            ['guardian', 'creator', 'updater', 'modalities']
+            [
+                'guardian',
+                'creator',
+                'updater',
+                'modalities',
+                'enrollments.classGroup.modality',
+                'enrollments.activeSubscription.plan',
+            ]
         );
 
         return $this->respondWithItem($model);

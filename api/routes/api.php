@@ -4,6 +4,7 @@ use App\Modules\Acl\Http\Controllers\AclPermissionController;
 use App\Modules\Acl\Http\Controllers\RoleController;
 use App\Modules\ClassGroup\Http\Controllers\ClassGroupController;
 use App\Modules\Company\Http\Middlewares\InitializeCompany;
+use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Enrollment\Http\Controllers\EnrollmentController;
 use App\Modules\Invoice\Http\Controllers\InvoiceController;
 use App\Modules\Modality\Http\Controllers\ModalityController;
@@ -117,6 +118,10 @@ Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function ()
 
     Route::middleware('permission:payments.sync')->group(function () {
         Route::post('payments/{payment}/sync-status', [PaymentController::class, 'syncStatus']);
+    });
+
+    Route::middleware('permission:dashboard.access')->group(function () {
+        Route::get('dashboard/summary', [DashboardController::class, 'summary']);
     });
 
     Route::middleware('permission:persons.read')->group(function () {
