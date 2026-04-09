@@ -1,0 +1,51 @@
+---
+description: Testes da API Laravel, banco isolado e obrigação ao alterar rotas públicas
+globs: api/**
+alwaysApply: false
+---
+
+# Testes da API (`api/`)
+
+## Banco de dados
+
+- O PHPUnit define em `api/phpunit.xml` o uso de **SQLite em memória** (`DB_CONNECTION=sqlite`, `DB_DATABASE=:memory:`) com `APP_ENV=testing`.
+- Assim os testes **não usam** o MySQL do `.env` de desenvolvimento: cada execução usa um banco efêmero e isolado.
+- Testes de feature que alteram o schema devem estender `Tests\Feature\Api\ApiTestCase` (que usa `RefreshDatabase` e executa `SettingsSeeder` para chaves de `tenant_settings` usadas em pagamentos e faturas).
+
+## Rotas autenticadas e empresa (tenant)
+
+- A maior parte das rotas em `routes/api.php` usa o grupo `auth:sanctum` e o middleware `InitializeCompany`.
+- O **contexto da empresa** vem do **usuário autenticado** (`$user->company`); o middleware injeta a company no contexto da aplicação.
+- Para exercitar uma rota de API de forma realista:
+  - criar `Company`, `Role` (com as permissões exigidas pela rota) e `User` vinculados à mesma empresa;
+  - autenticar com **Sanctum** via `$this->withHeaders(['Authorization' => 'Bearer '.$token])` (ver trait `CreatesTenantContext::bearerHeaders`) **ou** `Laravel\Sanctum\Sanctum::actingAs($user)`.
+- **Vários usuários no mesmo método de teste:** em alguns fluxos o guard Sanctum pode manter o usuário da primeira requisição; ao trocar de ator, prefira `Sanctum::actingAs($outroUsuario)` antes de cada chamada que deva usar esse ator (padrão usado em `EnrollmentApiTest` e em partes de billing).
+- Sem token ou usuário autenticado espera-se **401**; sem permissão espera-se **403**; modelos com `CompanyScope` devem respeitar o isolamento por `company_id` quando o contexto está definido.
+
+## Estrutura dos testes
+
+- Classe base: `api/tests/Feature/Api/ApiTestCase.php`.
+- Helpers de tenant: `api/tests/Feature/Api/Concerns/CreatesTenantContext.php` (empresa, papéis, usuário, pessoas, modalidade/plano, `createClassGroupViaApi`).
+- Organização por domínio sob `api/tests/Feature/Api/{Acl,Billing,ClassGroup,Enrollment,Modality,Person,Plan,Routes,Setting,User}/`.
+- Baseline de rotas: `api/tests/Feature/Api/Routes/ApiRoutesRegistrationTest.php` compara a quantidade de rotas com prefixo `api/` ao valor esperado; ao **registrar ou remover rotas**, ajuste o número no teste e acrescente ou atualize testes de comportamento.
+
+## Interface pública da API
+
+- A interface pública inclui **rotas HTTP** (e, quando existir, contratos expostos como OpenAPI) sob `api/`.
+- Sempre que **adicionar, remover ou alterar** rotas ou o comportamento observável de endpoints (status, formato JSON, regras de autorização, filtros de tenant):
+  - **atualizar ou criar** testes de feature que cubram o novo comportamento (incluindo ACL, filtros de serviço e isolamento entre empresas quando aplicável);
+  - atualizar o baseline em `ApiRoutesRegistrationTest` se a contagem de rotas `api/*` mudar.
+
+## Ao concluir uma implementação no backend
+
+- Rodar a suíte de testes **no container `app`**, a partir da **raiz do repositório** (onde está `docker-compose.yml`):
+
+```bash
+docker compose exec app php artisan test
+```
+
+- Corrigir falhas antes de considerar a tarefa encerrada.
+
+## Referência
+
+- Cobertura de rotas e casos de uso: diretório `api/tests/Feature/Api/`.
