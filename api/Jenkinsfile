@@ -43,8 +43,8 @@ pipeline {
         stage('Deploy') {
             steps {
                 sh '''
-                cd /infra
-                ./deploy-ematricula.sh
+                cd /infra/apps/ematricula
+                ./deploy.sh
                 '''
             }
         }
