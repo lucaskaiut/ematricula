@@ -1,0 +1,52 @@
+pipeline {
+    agent any
+
+    triggers {
+        githubPush()
+    }
+
+    stages {
+
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/lucaskaiut/ematricula.git'
+            }
+        }
+
+        stage('Detect changes in API') {
+            steps {
+                script {
+                    // pega alterações do último commit
+                    def changedFiles = sh(
+                        script: "git diff --name-only HEAD~1 HEAD",
+                        returnStdout: true
+                    ).trim()
+
+                    echo "Arquivos alterados:\n${changedFiles}"
+
+                    // verifica se algo em /api mudou
+                    def shouldDeploy = changedFiles
+                        .split('\n')
+                        .any { it.startsWith('api/') }
+
+                    if (!shouldDeploy) {
+                        echo "❌ Nenhuma alteração em /api — abortando deploy"
+                        currentBuild.result = 'SUCCESS'
+                        error("Sem mudanças relevantes")
+                    }
+
+                    echo "✅ Alterações em /api detectadas — continuando deploy"
+                }
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                cd ~/infra
+                ./deploy-ematricula.sh
+                '''
+            }
+        }
+    }
+}
