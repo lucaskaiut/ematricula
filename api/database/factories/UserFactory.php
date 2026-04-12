@@ -18,24 +18,34 @@ class UserFactory extends Factory
 
     public function configure(): static
     {
-        return $this->afterCreating(function (User $user): void {
-            if ($user->role_id !== null) {
+        return $this->afterMaking(function (User $user): void {
+            if ($user->role_id !== null || $user->company_id === null) {
                 return;
             }
-            $role = Role::query()->withoutGlobalScopes()->firstOrCreate(
-                [
-                    'company_id' => $user->company_id,
-                    'name' => 'Administrador',
-                ],
-                [
-                    'description' => 'Acesso total ao sistema',
-                    'permissions' => array_map(
-                        static fn (Permission $p) => $p->value,
-                        Permission::cases()
-                    ),
-                ]
-            );
-            $user->forceFill(['role_id' => $role->id])->saveQuietly();
+
+            $role = Role::query()
+                ->withoutGlobalScopes()
+                ->where('company_id', $user->company_id)
+                ->orderBy('id')
+                ->first();
+
+            if ($role === null) {
+                $role = Role::query()->withoutGlobalScopes()->firstOrCreate(
+                    [
+                        'company_id' => $user->company_id,
+                        'name' => 'Administrador',
+                    ],
+                    [
+                        'description' => 'Acesso total ao sistema',
+                        'permissions' => array_map(
+                            static fn (Permission $p) => $p->value,
+                            Permission::cases()
+                        ),
+                    ]
+                );
+            }
+
+            $user->forceFill(['role_id' => $role->id]);
         });
     }
 
