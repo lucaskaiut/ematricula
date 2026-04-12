@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HealthController;
 use App\Modules\Acl\Http\Controllers\AclPermissionController;
 use App\Modules\Acl\Http\Controllers\RoleController;
 use App\Modules\ClassGroup\Http\Controllers\ClassGroupController;
@@ -15,6 +16,8 @@ use App\Modules\Setting\Http\Controllers\TenantSettingsController;
 use App\Modules\Subscription\Http\Controllers\SubscriptionController;
 use App\Modules\User\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('health', HealthController::class);
 
 Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function () {
     Route::get('user/me', [UserController::class, 'me']);
