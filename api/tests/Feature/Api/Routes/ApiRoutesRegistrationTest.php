@@ -16,6 +16,6 @@ class ApiRoutesRegistrationTest extends TestCase
             ->filter(fn (Route $r) => str_starts_with($r->uri(), 'api/'))
             ->count();
 
-        $this->assertSame(61, $count, 'Atualize este valor e os testes de feature ao registrar ou remover rotas em routes/api.php.');
+        $this->assertSame(62, $count, 'Atualize este valor e os testes de feature ao registrar ou remover rotas em routes/api.php.');
     }
 }

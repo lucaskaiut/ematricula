@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Api\User;
 
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\Feature\Api\ApiTestCase;
 
 class UserAuthTest extends ApiTestCase
@@ -28,6 +30,38 @@ class UserAuthTest extends ApiTestCase
 
         $this->assertDatabaseHas('companies', ['email' => 'contato@escola-integracao.test']);
         $this->assertDatabaseHas('users', ['email' => 'diretor@escola-integracao.test']);
+    }
+
+    public function test_register_with_avatar_persists_file_and_returns_avatar_url(): void
+    {
+        Storage::fake('public');
+
+        $file = UploadedFile::fake()->image('face.jpg', 100, 100);
+
+        $response = $this->post('/api/users/register', [
+            'company' => [
+                'name' => 'Escola Avatar',
+                'email' => 'contato@escola-avatar.test',
+                'phone' => '11999990001',
+            ],
+            'user' => [
+                'name' => 'Com Foto',
+                'email' => 'usuario@escola-avatar.test',
+                'password' => 'senha1234',
+                'avatar' => $file,
+            ],
+        ]);
+
+        $response->assertCreated()
+            ->assertJsonPath('data.email', 'usuario@escola-avatar.test');
+
+        $this->assertNotNull($response->json('data.avatar_url'));
+
+        $this->assertDatabaseHas('users', ['email' => 'usuario@escola-avatar.test']);
+
+        $path = \App\Models\User::query()->where('email', 'usuario@escola-avatar.test')->value('avatar');
+        $this->assertNotNull($path);
+        Storage::disk('public')->assertExists($path);
     }
 
     public function test_register_validation_errors_return_422(): void

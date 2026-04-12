@@ -8,6 +8,7 @@ import {
 } from "@/components/sidebar/sidebar-provider";
 import { RouteAccessGuard } from "@/components/acl/route-access-guard";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { HeaderUserAvatar } from "@/components/header-user-avatar";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 function ShellInner({ children }: { children: React.ReactNode }) {
@@ -42,6 +43,7 @@ function ShellInner({ children }: { children: React.ReactNode }) {
               </button>
               <div className="flex items-center gap-2">
                 <ThemeToggle />
+                <HeaderUserAvatar />
               </div>
             </div>
           </header>

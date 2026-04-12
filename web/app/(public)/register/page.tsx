@@ -1,11 +1,10 @@
-import { registerAction, RegisterRequest, RegisterResponse } from "@/actions/auth";
+import { registerAction, RegisterResponse } from "@/actions/auth";
 import { Register } from "@/components/Register";
 
 export default async function RegisterPage() {
-  async function registerUser(data: RegisterRequest): Promise<RegisterResponse> {
+  async function registerUser(formData: FormData): Promise<RegisterResponse> {
     "use server";
-    const response = await registerAction(data);
-    return response;
+    return registerAction(formData);
   }
   return (
     <Register onSubmit={registerUser} />

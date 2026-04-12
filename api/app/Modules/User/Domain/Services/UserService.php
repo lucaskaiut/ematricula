@@ -11,7 +11,9 @@ use App\Modules\Company\Domain\Scopes\CompanyScope;
 use App\Modules\Company\Domain\Services\CompanyService;
 use App\Modules\Core\Domain\Contracts\ServiceContract;
 use App\Modules\Core\Domain\Traits\ServiceTrait;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 
 class UserService implements ServiceContract
 {
@@ -24,7 +26,7 @@ class UserService implements ServiceContract
         return ['id', 'name', 'email', 'created_at', 'updated_at'];
     }
 
-    public function register(array $data): User
+    public function register(array $data, ?UploadedFile $avatarFile = null): User
     {
         $company = app(CompanyService::class)->create($data['company']);
 
@@ -40,7 +42,26 @@ class UserService implements ServiceContract
         $userPayload = $data['user'];
         $userPayload['role_id'] = $role->id;
 
-        return $company->users()->createQuietly($userPayload);
+        $user = $company->users()->createQuietly($userPayload);
+
+        if ($avatarFile !== null) {
+            $this->replaceUserAvatar($user, $avatarFile);
+            $user->refresh();
+        }
+
+        return $user;
+    }
+
+    public function replaceUserAvatar(User $user, UploadedFile $file): User
+    {
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        $path = $file->store('avatars', 'public');
+        $user->update(['avatar' => $path]);
+
+        return $user->fresh();
     }
 
     public function login(array $data): User

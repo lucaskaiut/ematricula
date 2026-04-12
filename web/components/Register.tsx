@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { Bounce, ToastContainer, toast } from "react-toastify";
 import { ThemeToggle } from "@/components/theme-toggle";
 import type { RegisterRequestBody } from "@/types/api";
-import { RegisterRequest, RegisterResponse } from "@/actions/auth";
+import type { RegisterResponse } from "@/actions/auth";
 
 export function Register({
   onSubmit,
 }: {
-  onSubmit: (data: RegisterRequest) => Promise<RegisterResponse>;
+  onSubmit: (formData: FormData) => Promise<RegisterResponse>;
 }) {
   const [data, setData] = useState<RegisterRequestBody>({
     company: {
@@ -24,13 +24,25 @@ export function Register({
       password: "",
     },
   });
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   async function handleSubmit() {
     setIsLoading(true);
 
-    const response = await onSubmit(data);
+    const formData = new FormData();
+    formData.append("company[name]", data.company.name);
+    formData.append("company[email]", data.company.email);
+    formData.append("company[phone]", data.company.phone);
+    formData.append("user[name]", data.user.name);
+    formData.append("user[email]", data.user.email);
+    formData.append("user[password]", data.user.password);
+    if (avatarFile) {
+      formData.append("user[avatar]", avatarFile);
+    }
+
+    const response = await onSubmit(formData);
 
     if (response.success) {
       toast.success("Usuário cadastrado com sucesso");
@@ -221,6 +233,25 @@ export function Register({
                     }
                     className="min-h-11 w-full min-w-0 rounded-control bg-card px-4 py-3 text-base leading-snug text-foreground shadow-input placeholder:text-placeholder focus:outline-none sm:min-h-0 sm:py-[18px] sm:text-[16px] sm:leading-[19.36px]"
                     autoComplete="new-password"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-2">
+                  <label
+                    htmlFor="register-user-avatar"
+                    className="text-[14px] font-semibold leading-5 text-foreground"
+                  >
+                    Foto de perfil
+                  </label>
+                  <input
+                    id="register-user-avatar"
+                    name="user.avatar"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) =>
+                      setAvatarFile(e.target.files?.[0] ?? null)
+                    }
+                    className="min-h-11 w-full min-w-0 rounded-control border-0 bg-card px-2 py-2 text-sm text-foreground file:mr-3 file:rounded-md file:border-0 file:bg-accent-soft file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-primary"
                   />
                 </div>
               </fieldset>

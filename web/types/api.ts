@@ -7,6 +7,7 @@ export type UserAttributes = {
   id: number;
   name: string;
   email: string;
+  avatar_url?: string | null;
   token?: string | null;
   role?: RoleSummary | null;
   permissions?: string[];

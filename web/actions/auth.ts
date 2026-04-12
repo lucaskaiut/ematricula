@@ -13,6 +13,7 @@ export type AuthedUser = {
   id: string;
   name: string;
   email: string;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   role?: AuthedUserRole | null;
@@ -23,10 +24,6 @@ export type User = AuthedUser;
 
 export type LoginResponse = { success: boolean; error?: string };
 export type LoginRequest = { email: string; password: string };
-export type RegisterRequest = {
-  user: { email: string; password: string };
-  company: { name: string; email: string; phone: string };
-};
 export type RegisterResponse = { success: boolean; error?: string };
 
 export async function loginAction(
@@ -62,15 +59,14 @@ export async function loginAction(
 }
 
 export async function registerAction(
-  request: RegisterRequest,
+  formData: FormData,
 ): Promise<RegisterResponse> {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_URL}/users/register`,
       {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(request),
+        body: formData,
       },
     );
 
@@ -79,7 +75,7 @@ export async function registerAction(
     }
 
     return { success: true };
-  } catch (error) {
+  } catch {
     return { error: "Erro ao registrar usuário.", success: false };
   }
 }
@@ -136,10 +132,16 @@ async function fetchUserFromServer(): Promise<User | null> {
           }
         : null;
 
+    const avatarUrl =
+      typeof user.avatar_url === "string" && user.avatar_url !== ""
+        ? user.avatar_url
+        : null;
+
     return {
       id: user.id !== undefined ? String(user.id) : "",
       name: user.name,
       email: user.email,
+      avatar_url: avatarUrl,
       created_at:
         typeof user.created_at === "string" ? user.created_at : "",
       updated_at:

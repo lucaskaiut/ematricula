@@ -21,6 +21,7 @@ Route::get('health', HealthController::class);
 
 Route::middleware(['auth:sanctum', InitializeCompany::class])->group(function () {
     Route::get('user/me', [UserController::class, 'me']);
+    Route::patch('user/me', [UserController::class, 'updateMe']);
 
     Route::middleware('permission:roles.read|roles.write')->group(function () {
         Route::get('acl/permissions', [AclPermissionController::class, 'index']);

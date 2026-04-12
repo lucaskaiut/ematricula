@@ -7,10 +7,12 @@ namespace App\Models;
 use App\Modules\Acl\Domain\Models\Role;
 use App\Modules\Core\Domain\Traits\HasCompany;
 use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
@@ -29,6 +31,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -57,6 +60,18 @@ class User extends Authenticatable
     public function role(): BelongsTo
     {
         return $this->belongsTo(Role::class);
+    }
+
+    protected function avatarUrl(): Attribute
+    {
+        return Attribute::get(function (): ?string {
+            $path = $this->attributes['avatar'] ?? null;
+            if ($path === null || $path === '') {
+                return null;
+            }
+
+            return Storage::disk('public')->url($path);
+        });
     }
 
     public function hasPermission(string $permission): bool

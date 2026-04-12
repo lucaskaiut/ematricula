@@ -8,6 +8,7 @@ use App\Modules\User\Domain\Services\UserService;
 use App\Modules\User\Http\Requests\UserLoginRequest;
 use App\Modules\User\Http\Requests\UserRegisterRequest;
 use App\Modules\User\Http\Requests\UserRequest;
+use App\Modules\User\Http\Requests\UserUpdateMeRequest;
 use App\Modules\User\Http\Resources\UserResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -48,9 +49,10 @@ class UserController extends Controller
     public function register(UserRegisterRequest $request)
     {
         $validated = $request->validated();
+        $avatar = $request->file('user.avatar');
 
-        return $this->db()->transaction(function () use ($validated) {
-            $model = $this->service()->register($validated);
+        return $this->db()->transaction(function () use ($validated, $avatar) {
+            $model = $this->service()->register($validated, $avatar);
             $model->load('role');
 
             return $this->respondWithItem($model, 201);
@@ -76,5 +78,19 @@ class UserController extends Controller
         $user->loadMissing('role');
 
         return $this->respondWithItem($user);
+    }
+
+    public function updateMe(UserUpdateMeRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if(! $user, 401);
+
+        $updated = $this->db()->transaction(function () use ($user, $request) {
+            return $this->service()->replaceUserAvatar($user, $request->file('avatar'));
+        });
+
+        $updated->load('role');
+
+        return $this->respondWithItem($updated);
     }
 }
